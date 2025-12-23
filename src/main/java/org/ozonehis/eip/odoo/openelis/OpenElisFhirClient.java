@@ -17,13 +17,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class OpenElisFhirClient extends BaseFhirClient {
 
-    @Value("${openelis.backend.url}")
+    @Value("${eip.openelis.url}")
     private String baseUrl;
 
-    @Value("${openelis.username}")
+    @Value("${eip.openelis.username}")
     private String email;
 
-    @Value("${openelis.password}")
+    @Value("${eip.openelis.password}")
     private char[] password;
 
     private FhirContext fhirContext;
