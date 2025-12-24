@@ -1,4 +1,4 @@
-package org.ozonehis.eip.odoo.openelis;
+package org.ozonehis.eip.odoo.openelis.fhir;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.springframework.beans.factory.annotation.Value;

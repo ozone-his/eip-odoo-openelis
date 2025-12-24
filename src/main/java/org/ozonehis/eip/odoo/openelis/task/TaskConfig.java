@@ -5,12 +5,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.ozonehis.eip.odoo.openelis.config;
+package org.ozonehis.eip.odoo.openelis.task;
 
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@Configuration
 @EnableScheduling
-public class Config {
+public class TaskConfig {
 }
