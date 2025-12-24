@@ -7,6 +7,7 @@
  */
 package org.ozonehis.eip.odoo.openelis;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
@@ -22,8 +23,33 @@ public abstract class BaseFhirClient {
 
     private String serverName;
 
+    protected FhirContext fhirContext;
+
+    private IGenericClient fhirClient;
+
     public BaseFhirClient(String serverName) {
         this.serverName = serverName;
+    }
+
+    /**
+     * Gets the {@link IGenericClient} instance
+     *
+     * @return IGenericClient
+     */
+    protected IGenericClient getFhirClient() {
+        if (fhirClient == null) {
+            synchronized (this) {
+                if (fhirClient == null) {
+                    fhirContext = FhirContext.forR4();
+                    fhirContext.getRestfulClientFactory().setConnectTimeout(30000);
+                    fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(120000);
+                    fhirContext.getRestfulClientFactory().setSocketTimeout(120000);
+                    fhirClient = createFhirClient();
+                }
+            }
+        }
+
+        return fhirClient;
     }
 
     /**
@@ -74,6 +100,6 @@ public abstract class BaseFhirClient {
      *
      * @return IGenericClient
      */
-    protected abstract IGenericClient getFhirClient();
+    protected abstract IGenericClient createFhirClient();
 
 }

@@ -1,8 +1,6 @@
 package org.ozonehis.eip.odoo.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,30 +10,13 @@ public class OpenElisFhirClient extends BaseFhirClient {
     @Value("${eip.openelis.url}")
     private String baseUrl;
 
-    private FhirContext fhirContext;
-
-    private IGenericClient fhirClient;
-
     public OpenElisFhirClient() {
         super("OpenELIS");
     }
 
     @Override
-    protected IGenericClient getFhirClient() {
-        if (fhirClient == null) {
-            synchronized (this) {
-                if (fhirClient == null) {
-                    fhirContext = FhirContext.forR4();
-                    fhirContext.getRestfulClientFactory().setConnectTimeout(30000);
-                    fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(120000);
-                    fhirContext.getRestfulClientFactory().setSocketTimeout(120000);
-                    fhirContext.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
-                    fhirClient = fhirContext.newRestfulGenericClient(baseUrl + "/fhir");
-                }
-            }
-        }
-
-        return fhirClient;
+    protected IGenericClient createFhirClient() {
+        return fhirContext.newRestfulGenericClient(baseUrl + "/fhir");
     }
 
 }
