@@ -10,9 +10,13 @@ package org.ozonehis.eip.odoo.openelis.fhir;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 
 /**
@@ -21,14 +25,14 @@ import org.hl7.fhir.r4.model.DomainResource;
 @Slf4j
 public abstract class BaseFhirClient {
 
-    private String serverName;
+    private String sourceName;
 
     protected FhirContext fhirContext;
 
     private IGenericClient fhirClient;
 
-    public BaseFhirClient(String serverName) {
-        this.serverName = serverName;
+    public BaseFhirClient(String sourceName) {
+        this.sourceName = sourceName;
     }
 
     /**
@@ -53,13 +57,49 @@ public abstract class BaseFhirClient {
     }
 
     /**
+     * Fetches a resource from a fhir server with an identifier matching the specified external identifier.
+     *
+     * @param externalId the externalId to match
+     * @return a fhir resource if a match is found otherwise null
+     */
+    public <T extends IBaseResource> T getByIdentifier(String externalId, Class<T> resourceType) {
+        final String resource = resourceType.getSimpleName();
+        if (log.isDebugEnabled()) {
+            log.debug("Getting {} from {} with identifier: {}", resource, sourceName, externalId);
+        }
+
+        try {
+            Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
+                    .where(new TokenClientParam("identifier").exactly().identifier(externalId)).execute();
+            if (bundle.getEntry().size() == 1) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Found {} in {} with identifier: {}", resource, sourceName, externalId);
+                }
+
+                return (T) bundle.getEntry().get(0).getResource();
+            } else if (bundle.getEntry().size() > 1) {
+                throw new RuntimeException("Found multiple resources of type " + resource + " in " + sourceName
+                        + " with external identifier " + externalId);
+            }
+        } catch (ResourceNotFoundException e) {
+            //Ignore
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("No {} found in hcw@home with identifier: {}", resource, externalId);
+        }
+
+        return null;
+    }
+
+    /**
      * Creates the specified resource in the fhir server.
      *
      * @param resource the resource to create
      */
     public void create(DomainResource resource) {
         if (log.isDebugEnabled()) {
-            log.debug("Creating {} in {}", resource.fhirType(), serverName);
+            log.debug("Creating {} in {}", resource.fhirType(), sourceName);
         }
 
         MethodOutcome outcome;
@@ -70,18 +110,18 @@ public abstract class BaseFhirClient {
         }
 
         if (!outcome.getCreated()) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when creating invite in " + serverName);
+            throw new RuntimeException("Unexpected outcome " + outcome + " when creating invite in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Successfully created {} in {}", resource.fhirType(), serverName);
+            log.debug("Successfully created {} in {}", resource.fhirType(), sourceName);
         }
     }
 
     protected String getErrorMessage(Exception e, String operation) {
         String msg = getServerErrorMessage(e);
         if (StringUtils.isBlank(msg)) {
-            msg = "Failed to " + operation + " invite in " + serverName;
+            msg = "Failed to " + operation + " invite in " + sourceName;
         }
 
         return msg;
