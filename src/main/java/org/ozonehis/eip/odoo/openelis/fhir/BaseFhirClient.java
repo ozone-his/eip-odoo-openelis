@@ -13,6 +13,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -25,6 +26,7 @@ import org.hl7.fhir.r4.model.DomainResource;
 @Slf4j
 public abstract class BaseFhirClient {
 
+    @Getter
     private String sourceName;
 
     protected FhirContext fhirContext;
