@@ -1,16 +1,58 @@
 package org.ozonehis.eip.odoo.openelis;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.Subscription;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
+import org.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.MediaType;
 
 @Slf4j
 public class StartListener {
 
+    @Value("${eip.subscription.endpoint}")
+    private String endpoint;
+
+    private OpenElisFhirClient fhirClient;
+
+    public StartListener(OpenElisFhirClient fhirClient) {
+        this.fhirClient = fhirClient;
+    }
+
     @EventListener(classes = {ContextRefreshedEvent.class})
     public void contextRefreshed() {
+        initializeSubscriptions();
+    }
+
+    protected void initializeSubscriptions() {
         if (log.isDebugEnabled()) {
-            log.debug("Checking if subscription is added");
+            log.debug("Checking if the Patient and ServiceRequest subscription exists in OpenELIS");
+        }
+
+        Subscription sub = fhirClient.getSubscription();
+        if (sub == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Adding Patient and ServiceRequest subscription in OpenELIS");
+            }
+
+            SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
+            channel.setType(SubscriptionChannelType.RESTHOOK);
+            channel.setPayload(MediaType.APPLICATION_JSON_VALUE);
+            channel.setEndpoint(endpoint);
+            sub = new Subscription();
+            sub.setStatus(SubscriptionStatus.REQUESTED);
+            sub.setCriteria(Constants.SUBSCRIPTION_CRITERIA);
+            sub.setChannel(channel);
+            fhirClient.create(sub);
+        } else if (!endpoint.equals(sub.getChannel().getEndpoint())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Updating Patient and ServiceRequest subscription in OpenELIS");
+            }
+            //TODO Updated endpoint
         }
     }
 
