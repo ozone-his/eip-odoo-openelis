@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
+import org.springframework.http.HttpStatus;
 
 /**
  * Base class for classes that interact with a FHIR server.
@@ -108,11 +109,11 @@ public abstract class BaseFhirClient {
         try {
             outcome = getFhirClient().create().resource(resource).execute();
         } catch (Exception e) {
-            throw new RuntimeException(getErrorMessage(e, "create"));
+            throw new RuntimeException(getErrorMessage(e, resource.fhirType(), "create"));
         }
 
         if (!outcome.getCreated()) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when creating invite in " + sourceName);
+            throw new RuntimeException("Unexpected outcome " + outcome + " when creating " + resource.fhirType() + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -120,10 +121,36 @@ public abstract class BaseFhirClient {
         }
     }
 
-    protected String getErrorMessage(Exception e, String operation) {
+    /**
+     * Updates the specified resource in the fhir server.
+     *
+     * @param resource the resource to update
+     */
+    public void update(DomainResource resource) {
+        if (log.isDebugEnabled()) {
+            log.debug("Updating {} in {}", resource.fhirType(), sourceName);
+        }
+
+        MethodOutcome outcome;
+        try {
+            outcome = getFhirClient().update().resource(resource).execute();
+        } catch (Exception e) {
+            throw new RuntimeException(getErrorMessage(e, resource.fhirType(), "update"));
+        }
+
+        if (outcome.getResponseStatusCode() != HttpStatus.OK.value()) {
+            throw new RuntimeException("Unexpected outcome " + outcome + " when updating " + resource.fhirType() + " in " + sourceName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully updated {} in {}", resource.fhirType(), sourceName);
+        }
+    }
+
+    protected String getErrorMessage(Exception e, String resourceName, String operation) {
         String msg = getServerErrorMessage(e);
         if (StringUtils.isBlank(msg)) {
-            msg = "Failed to " + operation + " invite in " + sourceName;
+            msg = "Failed to " + operation + " " + resourceName + " in " + sourceName;
         }
 
         return msg;
