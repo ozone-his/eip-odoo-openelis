@@ -35,10 +35,6 @@ public class StartListener {
 
         Subscription sub = fhirClient.getSubscription();
         if (sub == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Adding Patient and ServiceRequest subscription in OpenELIS");
-            }
-
             SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
             channel.setType(SubscriptionChannelType.RESTHOOK);
             channel.setPayload(MediaType.APPLICATION_JSON_VALUE);
@@ -49,10 +45,8 @@ public class StartListener {
             sub.setChannel(channel);
             fhirClient.create(sub);
         } else if (!endpoint.equals(sub.getChannel().getEndpoint())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Updating Patient and ServiceRequest subscription in OpenELIS");
-            }
-            //TODO Updated endpoint
+            sub.getChannel().setEndpoint(endpoint);
+            fhirClient.update(sub);
         }
     }
 
