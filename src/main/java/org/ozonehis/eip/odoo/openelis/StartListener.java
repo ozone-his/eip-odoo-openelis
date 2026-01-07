@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 @Slf4j
 public class StartListener {
 
-    @Value("${eip.subscription.endpoint}")
+    @Value("${" + Constants.PROP_SUB_ENDPOINT + "}")
     private String endpoint;
 
     private OpenElisFhirClient fhirClient;
