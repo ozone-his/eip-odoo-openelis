@@ -3,18 +3,17 @@ package org.ozonehis.eip.odoo.openelis.task;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.ozonehis.eip.odoo.openelis.Constants;
+import org.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.Properties;
 
-import static java.time.ZoneId.systemDefault;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 @Slf4j
@@ -30,7 +29,7 @@ public class TimestampStore {
 
     private Properties props;
 
-    public LocalDateTime getTimestamp(Class<? extends Resource> resourceType) {
+    public LocalDateTime getTimestamp(Class<? extends IBaseResource> resourceType) {
         final String ts = getProps().getProperty(resourceType.getSimpleName());
         if (StringUtils.isBlank(ts)) {
             if (log.isDebugEnabled()) {
@@ -40,13 +39,13 @@ public class TimestampStore {
             return null;
         }
 
-        return ZonedDateTime.parse(ts, ISO_OFFSET_DATE_TIME).withZoneSameInstant(systemDefault()).toLocalDateTime();
+        return DateUtils.deserialize(ts);
     }
 
-    public synchronized void update(LocalDateTime timestamp, Class<? extends Resource> resourceType) {
+    public synchronized void update(LocalDateTime timestamp, Class<? extends IBaseResource> resourceType) {
         final String resource = resourceType.getSimpleName();
         Properties propsTemp = new Properties(getProps());
-        final String newTimestamp = timestamp.format(ISO_OFFSET_DATE_TIME);
+        final String newTimestamp = DateUtils.serialize(timestamp);
         propsTemp.put(resourceType.getSimpleName(), newTimestamp);
         if (log.isDebugEnabled()) {
             log.debug("Updating timestamps for {} resource to {}", resource, newTimestamp);

@@ -13,6 +13,10 @@ public class Constants {
 
     public static final String PROP_SUB_ENDPOINT = "eip.subscription.endpoint";
 
-    public static final String PROP_TASK_LAST_RUN_TS_FILE = "eip.task.last.run.ts.file";
+    public static final String PROP_TASK_LAST_RUN_TS_FILE = "eip.sync.task.last.run.ts.file";
+
+    public static final String PROP_INITIAL_DELAY = "eip.sync.task.initial.delay";
+
+    public static final String PROP_DELAY = "eip.sync.task.delay";
 
 }
