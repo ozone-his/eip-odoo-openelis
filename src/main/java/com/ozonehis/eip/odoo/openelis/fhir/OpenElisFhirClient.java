@@ -3,13 +3,13 @@ package com.ozonehis.eip.odoo.openelis.fhir;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.StringClientParam;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import com.ozonehis.eip.odoo.openelis.Constants;
+import com.ozonehis.eip.odoo.openelis.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Subscription;
-import com.ozonehis.eip.odoo.openelis.Constants;
-import com.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -79,11 +79,12 @@ public class OpenElisFhirClient extends BaseFhirClient {
     public <T extends IBaseResource> List<T> getModifiedResources(Class<T> resourceType, LocalDateTime since) {
         final String resource = resourceType.getSimpleName();
         if (log.isDebugEnabled()) {
-            log.debug("Getting all resource of type {} modified since {}", resource, resource, since);
+            log.debug("Getting all resource of type {} modified since {}", resource, since);
         }
 
+        final String sinceStr = DateUtils.serialize(since);
         Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
-                .where(IAnyResource.RES_LAST_UPDATED.afterOrEquals().day(DateUtils.serialize(since))).execute();
+                .where(new StringClientParam(IAnyResource.SP_RES_LAST_UPDATED).matches().value(sinceStr)).execute();
         return (List) bundle.getEntry().stream().parallel().map(e -> e.getResource()).collect(Collectors.toList());
     }
 

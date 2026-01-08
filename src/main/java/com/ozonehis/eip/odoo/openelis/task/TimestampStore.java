@@ -1,11 +1,11 @@
 package com.ozonehis.eip.odoo.openelis.task;
 
+import com.ozonehis.eip.odoo.openelis.Constants;
+import com.ozonehis.eip.odoo.openelis.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import com.ozonehis.eip.odoo.openelis.Constants;
-import com.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Properties;
-
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 @Slf4j
 @Component
@@ -44,7 +42,8 @@ public class TimestampStore {
 
     public synchronized void update(LocalDateTime timestamp, Class<? extends IBaseResource> resourceType) {
         final String resource = resourceType.getSimpleName();
-        Properties propsTemp = new Properties(getProps());
+        Properties propsTemp = new Properties();
+        propsTemp.putAll(getProps());
         final String newTimestamp = DateUtils.serialize(timestamp);
         propsTemp.put(resourceType.getSimpleName(), newTimestamp);
         if (log.isDebugEnabled()) {
@@ -57,7 +56,7 @@ public class TimestampStore {
             throw new RuntimeException("Failed to save timestamps for " + resource + " resource ", e);
         }
 
-        getProps().put(resourceType.getSimpleName(), timestamp.format(ISO_OFFSET_DATE_TIME));
+        getProps().put(resourceType.getSimpleName(), DateUtils.serialize(timestamp));
         if (log.isDebugEnabled()) {
             log.debug("Successfully saved timestamps for {} resource", resource);
         }
@@ -90,7 +89,7 @@ public class TimestampStore {
                 if (file == null) {
                     File fileTemp = new File(filename);
                     if (!fileTemp.exists()) {
-                        if (fileTemp.getParentFile().exists()) {
+                        if (!fileTemp.getParentFile().exists()) {
                             log.info("Creating timestamp directory");
                             if (fileTemp.getParentFile().mkdirs()) {
                                 log.info("Successfully created timestamp directory");
