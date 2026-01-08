@@ -1,4 +1,4 @@
-package org.ozonehis.eip.odoo.openelis.fhir;
+package com.ozonehis.eip.odoo.openelis.fhir;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.StringClientParam;
@@ -8,8 +8,8 @@ import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Subscription;
-import org.ozonehis.eip.odoo.openelis.Constants;
-import org.ozonehis.eip.odoo.openelis.DateUtils;
+import com.ozonehis.eip.odoo.openelis.Constants;
+import com.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

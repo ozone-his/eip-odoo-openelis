@@ -5,10 +5,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.ozonehis.eip.odoo.openelis.task;
+package com.ozonehis.eip.odoo.openelis.task;
 
-import org.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
-import org.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
+import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 

@@ -1,11 +1,11 @@
-package org.ozonehis.eip.odoo.openelis.task;
+package com.ozonehis.eip.odoo.openelis.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.ozonehis.eip.odoo.openelis.Constants;
-import org.ozonehis.eip.odoo.openelis.DateUtils;
+import com.ozonehis.eip.odoo.openelis.Constants;
+import com.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

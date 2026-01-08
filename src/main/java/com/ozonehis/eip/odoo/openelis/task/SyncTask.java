@@ -5,20 +5,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.ozonehis.eip.odoo.openelis.task;
+package com.ozonehis.eip.odoo.openelis.task;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
-import org.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
-import org.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
+import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
-import static org.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
+import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
+import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
 
 public class SyncTask {
 

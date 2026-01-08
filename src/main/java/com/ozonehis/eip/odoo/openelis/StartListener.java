@@ -1,11 +1,11 @@
-package org.ozonehis.eip.odoo.openelis;
+package com.ozonehis.eip.odoo.openelis;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
-import org.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;

@@ -1,7 +1,7 @@
-package org.ozonehis.eip.odoo.openelis;
+package com.ozonehis.eip.odoo.openelis;
 
-import org.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
-import org.ozonehis.eip.odoo.openelis.task.TaskConfig;
+import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import com.ozonehis.eip.odoo.openelis.task.TaskConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
