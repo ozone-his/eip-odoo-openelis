@@ -19,16 +19,18 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 @Slf4j
 @Component
-public class TimeStampStore {
+public class TimestampStore {
 
     @Value("${" + Constants.PROP_TASK_LAST_RUN_TS_FILE + "}")
     private String filename;
+
+    private File file;
 
     private LocalDateTime timestamp;
 
     private Properties props;
 
-    public LocalDateTime getTimestamp(Class<Resource> resourceType) {
+    public LocalDateTime getTimestamp(Class<? extends Resource> resourceType) {
         final String ts = getProps().getProperty(resourceType.getSimpleName());
         if (StringUtils.isBlank(ts)) {
             if (log.isDebugEnabled()) {
@@ -41,7 +43,7 @@ public class TimeStampStore {
         return ZonedDateTime.parse(ts, ISO_OFFSET_DATE_TIME).withZoneSameInstant(systemDefault()).toLocalDateTime();
     }
 
-    public void update(LocalDateTime timestamp, Class<Resource> resourceType) {
+    public synchronized void update(LocalDateTime timestamp, Class<? extends Resource> resourceType) {
         final String resource = resourceType.getSimpleName();
         Properties propsTemp = new Properties(getProps());
         final String newTimestamp = timestamp.format(ISO_OFFSET_DATE_TIME);
@@ -64,15 +66,19 @@ public class TimeStampStore {
 
     private Properties getProps() {
         if (props == null) {
-            props = new Properties();
+            synchronized (this) {
+                if (props == null) {
+                    props = new Properties();
 
-            try {
-                File file = getFile();
-                log.info("Loading timestamps from {}", file);
-                props.load(FileUtils.openInputStream(file));
-                log.info("Successfully loaded timestamps");
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to load timestamps", e);
+                    try {
+                        File file = getFile();
+                        log.info("Loading timestamps from {}", file);
+                        props.load(FileUtils.openInputStream(file));
+                        log.info("Successfully loaded timestamps");
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to load timestamps", e);
+                    }
+                }
             }
         }
 
@@ -80,27 +86,35 @@ public class TimeStampStore {
     }
 
     protected File getFile() {
-        File file = new File(filename);
-        if (!file.exists()) {
-            if (file.getParentFile().exists()) {
-                log.info("Creating timestamp directory");
-                if (file.getParentFile().mkdirs()) {
-                    log.info("Successfully created timestamp directory");
-                } else {
-                    throw new RuntimeException("Failed to create timestamp directory");
-                }
-            }
+        if (file == null) {
+            synchronized (this) {
+                if (file == null) {
+                    File fileTemp = new File(filename);
+                    if (!fileTemp.exists()) {
+                        if (fileTemp.getParentFile().exists()) {
+                            log.info("Creating timestamp directory");
+                            if (fileTemp.getParentFile().mkdirs()) {
+                                log.info("Successfully created timestamp directory");
+                            } else {
+                                throw new RuntimeException("Failed to create timestamp directory");
+                            }
+                        }
 
-            log.info("Creating timestamp file");
+                        log.info("Creating timestamp file");
 
-            try {
-                if (file.createNewFile()) {
-                    log.info("Successfully created timestamp file");
-                } else {
-                    log.info("Failed to create timestamp file because it already exists");
+                        try {
+                            if (fileTemp.createNewFile()) {
+                                log.info("Successfully created timestamp file");
+                            } else {
+                                log.info("Failed to create timestamp file because it already exists");
+                            }
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to create timestamp file", e);
+                        }
+                    }
+
+                    file = fileTemp;
                 }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to create timestamp file", e);
             }
         }
 
