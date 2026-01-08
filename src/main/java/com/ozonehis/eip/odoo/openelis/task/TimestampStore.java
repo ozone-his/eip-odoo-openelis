@@ -5,7 +5,7 @@ import com.ozonehis.eip.odoo.openelis.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.DomainResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +27,7 @@ public class TimestampStore {
 
     private Properties props;
 
-    public LocalDateTime getTimestamp(Class<? extends IBaseResource> resourceType) {
+    public LocalDateTime getTimestamp(Class<? extends DomainResource> resourceType) {
         final String ts = getProps().getProperty(resourceType.getSimpleName());
         if (StringUtils.isBlank(ts)) {
             if (log.isDebugEnabled()) {
@@ -40,7 +40,7 @@ public class TimestampStore {
         return DateUtils.deserialize(ts);
     }
 
-    public synchronized void update(LocalDateTime timestamp, Class<? extends IBaseResource> resourceType) {
+    public synchronized void update(LocalDateTime timestamp, Class<? extends DomainResource> resourceType) {
         final String resource = resourceType.getSimpleName();
         Properties propsTemp = new Properties();
         propsTemp.putAll(getProps());

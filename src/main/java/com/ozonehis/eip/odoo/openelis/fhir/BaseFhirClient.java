@@ -16,7 +16,6 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 
@@ -64,7 +63,7 @@ public abstract class BaseFhirClient {
      * @param externalId the externalId to match
      * @return a fhir resource if a match is found otherwise null
      */
-    public <T extends IBaseResource> T getByIdentifier(String externalId, Class<T> resourceType) {
+    public <T extends DomainResource> T getByIdentifier(String externalId, Class<T> resourceType) {
         final String resource = resourceType.getSimpleName();
         if (log.isDebugEnabled()) {
             log.debug("Getting {} from {} with identifier: {}", resource, sourceName, externalId);

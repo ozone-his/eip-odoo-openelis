@@ -7,8 +7,8 @@ import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IAnyResource;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Subscription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -75,7 +75,7 @@ public class OpenElisFhirClient extends BaseFhirClient {
      * @param since        the date instance to compare against
      * @return list of modified resources
      */
-    public <T extends IBaseResource> List<T> getModifiedResources(Class<T> resourceType, LocalDateTime since) {
+    public <T extends DomainResource> List<T> getModifiedResources(Class<T> resourceType, LocalDateTime since) {
         final String resource = resourceType.getSimpleName();
         if (log.isDebugEnabled()) {
             log.debug("Getting all resource of type {} modified since {}", resource, since);
