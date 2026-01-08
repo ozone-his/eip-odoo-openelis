@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
-import org.springframework.http.HttpStatus;
 
 /**
  * Base class for classes that interact with a FHIR server.
@@ -138,7 +137,7 @@ public abstract class BaseFhirClient {
             throw new RuntimeException(getErrorMessage(e, resource.fhirType(), "update"));
         }
 
-        if (outcome.getResponseStatusCode() != HttpStatus.OK.value()) {
+        if (outcome.getResponseStatusCode() != 200) {
             throw new RuntimeException("Unexpected outcome " + outcome + " when updating " + resource.fhirType() + " in " + sourceName);
         }
 

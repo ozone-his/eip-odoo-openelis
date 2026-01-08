@@ -21,7 +21,6 @@ import static org.hl7.fhir.r4.model.Subscription.CRITERIA;
 import static org.hl7.fhir.r4.model.Subscription.SP_PAYLOAD;
 import static org.hl7.fhir.r4.model.Subscription.SP_TYPE;
 import static org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType.RESTHOOK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Component
 @Slf4j
@@ -48,7 +47,7 @@ public class OpenElisFhirClient extends BaseFhirClient {
             Bundle bundle = (Bundle) getFhirClient().search().forResource(Subscription.class)
                     .where(CRITERIA.matchesExactly().value(Constants.SUBSCRIPTION_CRITERIA))
                     .and(new StringClientParam(SP_TYPE).matchesExactly().value(RESTHOOK.toCode()))
-                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(APPLICATION_JSON_VALUE)).execute();
+                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(Constants.MEDIA_TYPE)).execute();
             if (bundle.getEntry().size() == 1) {
                 if (log.isDebugEnabled()) {
                     log.debug("Found subscription in {}", getSourceName());

@@ -1,15 +1,14 @@
 package com.ozonehis.eip.odoo.openelis;
 
+import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
-import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.MediaType;
 
 @Slf4j
 public class StartListener {
@@ -37,7 +36,7 @@ public class StartListener {
         if (sub == null) {
             SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
             channel.setType(SubscriptionChannelType.RESTHOOK);
-            channel.setPayload(MediaType.APPLICATION_JSON_VALUE);
+            channel.setPayload(Constants.MEDIA_TYPE);
             channel.setEndpoint(endpoint);
             sub = new Subscription();
             sub.setStatus(SubscriptionStatus.REQUESTED);

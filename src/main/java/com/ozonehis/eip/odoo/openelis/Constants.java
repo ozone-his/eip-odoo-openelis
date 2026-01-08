@@ -9,6 +9,8 @@ package com.ozonehis.eip.odoo.openelis;
 
 public class Constants {
 
+    public static final String MEDIA_TYPE = "application/fhir+json";
+
     public static final String SUBSCRIPTION_CRITERIA = "[Patient,ServiceRequest]";
 
     public static final String PROP_SUB_ENDPOINT = "eip.subscription.endpoint";
