@@ -4,11 +4,18 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.StringClientParam;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.instance.model.api.IAnyResource;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Subscription;
 import org.ozonehis.eip.odoo.openelis.Constants;
+import org.ozonehis.eip.odoo.openelis.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hl7.fhir.r4.model.Subscription.CRITERIA;
 import static org.hl7.fhir.r4.model.Subscription.SP_PAYLOAD;
@@ -40,8 +47,8 @@ public class OpenElisFhirClient extends BaseFhirClient {
         try {
             Bundle bundle = (Bundle) getFhirClient().search().forResource(Subscription.class)
                     .where(CRITERIA.matchesExactly().value(Constants.SUBSCRIPTION_CRITERIA))
-                    .and(new StringClientParam(SP_TYPE).matchesExactly().value(RESTHOOK.name()))
-                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(APPLICATION_JSON_VALUE));
+                    .and(new StringClientParam(SP_TYPE).matchesExactly().value(RESTHOOK.toCode()))
+                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(APPLICATION_JSON_VALUE)).execute();
             if (bundle.getEntry().size() == 1) {
                 if (log.isDebugEnabled()) {
                     log.debug("Found subscription in {}", getSourceName());
@@ -60,6 +67,24 @@ public class OpenElisFhirClient extends BaseFhirClient {
         }
 
         return null;
+    }
+
+    /**
+     * Fetches all resources from a fhir server modified since the specified time.
+     *
+     * @param resourceType the resource type to match
+     * @param since        the date instance to compare against
+     * @return list of modified resources
+     */
+    public <T extends IBaseResource> List<T> getModifiedResources(Class<T> resourceType, LocalDateTime since) {
+        final String resource = resourceType.getSimpleName();
+        if (log.isDebugEnabled()) {
+            log.debug("Getting all resource of type {} modified since {}", resource, resource, since);
+        }
+
+        Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
+                .where(IAnyResource.RES_LAST_UPDATED.afterOrEquals().day(DateUtils.serialize(since))).execute();
+        return (List) bundle.getEntry().stream().parallel().map(e -> e.getResource()).collect(Collectors.toList());
     }
 
 }
