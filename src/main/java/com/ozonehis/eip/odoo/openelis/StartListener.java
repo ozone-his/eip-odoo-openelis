@@ -89,7 +89,7 @@ public class StartListener {
                     sub.getChannel().addHeader(auth);
                 }
             } else {
-                authChanged = !auth.equals(sub.getChannel().getHeader());
+                authChanged = !auth.equals(existingAuth);
                 if (authChanged) {
                     if (log.isDebugEnabled()) {
                         log.debug("Updating authentication header");
