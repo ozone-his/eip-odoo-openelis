@@ -1,5 +1,6 @@
 package com.ozonehis.eip.odoo.openelis;
 
+import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import com.ozonehis.eip.odoo.openelis.task.TaskConfig;
 import org.springframework.boot.SpringApplication;
@@ -16,8 +17,8 @@ public class Launcher {
     }
 
     @Bean
-    public StartListener startListener(OpenElisFhirClient fhirClient) {
-        return new StartListener(fhirClient);
+    public StartListener startListener(OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
+        return new StartListener(openElisClient, odooClient);
     }
 
 }

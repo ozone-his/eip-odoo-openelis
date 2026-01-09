@@ -9,6 +9,7 @@ package com.ozonehis.eip.odoo.openelis.fhir;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +20,11 @@ public class OdooFhirClient extends BaseFhirClient {
     private String serverUrl;
 
     @Value("${eip.odoo.fhir.username}")
+    @Getter
     private String username;
 
     @Value("${eip.odoo.fhir.password}")
+    @Getter
     private char[] password;
 
     public OdooFhirClient() {
