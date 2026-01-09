@@ -6,7 +6,6 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Subscription;
@@ -17,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.hl7.fhir.instance.model.api.IAnyResource.SP_RES_LAST_UPDATED;
 import static org.hl7.fhir.r4.model.Subscription.CRITERIA;
 import static org.hl7.fhir.r4.model.Subscription.SP_PAYLOAD;
 import static org.hl7.fhir.r4.model.Subscription.SP_TYPE;
@@ -83,7 +83,7 @@ public class OpenElisFhirClient extends BaseFhirClient {
 
         final String sinceStr = DateUtils.serialize(since);
         Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
-                .where(new StringClientParam(IAnyResource.SP_RES_LAST_UPDATED).matches().value(sinceStr)).execute();
+                .where(new StringClientParam(SP_RES_LAST_UPDATED).matches().value("ge" + sinceStr)).execute();
         return (List) bundle.getEntry().stream().parallel().map(e -> e.getResource()).collect(Collectors.toList());
     }
 

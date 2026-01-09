@@ -7,11 +7,12 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
-import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.ServiceRequest;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ import java.util.List;
 import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
 import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
 
+@Slf4j
 public class SyncTask {
 
     private TimestampStore timestampStore;
@@ -40,14 +42,25 @@ public class SyncTask {
         sync(ServiceRequest.class);
     }
 
-    public void sync(Class<? extends IBaseResource> resourceType) {
+    public void sync(Class<? extends DomainResource> resourceType) {
+        LocalDateTime now = LocalDateTime.now();
+        //TODO Should we rollback by a few seconds to close any gaps in case there were uncommitted changes
+        //during the last poll?
         LocalDateTime since = timestampStore.getTimestamp(resourceType);
         if (since == null) {
             since = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
         }
 
-        List<? extends IBaseResource> resources = openElisClient.getModifiedResources(resourceType, since);
-        System.out.println("Resource count: " + resources.size());
+        List<? extends DomainResource> resources = openElisClient.getModifiedResources(resourceType, since);
+        if (log.isDebugEnabled()) {
+            log.debug("Found {} {} resources to sync: ", resources.size(), resourceType.getSimpleName());
+        }
+
+        resources.parallelStream().forEach(r -> {
+            odooClient.update(r);
+        });
+
+        timestampStore.update(now, resourceType);
     }
 
 }
