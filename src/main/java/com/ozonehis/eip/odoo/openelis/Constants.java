@@ -13,6 +13,8 @@ public class Constants {
 
     public static final String SUBSCRIPTION_CRITERIA = "[Patient,ServiceRequest]";
 
+    public static final String EXT = "http://hapifhir.io/fhir/StructureDefinition/subscription-send-delete-messages";
+
     public static final String PROP_SUB_ENDPOINT = "eip.subscription.endpoint";
 
     public static final String PROP_TASK_LAST_RUN_TS_FILE = "eip.sync.task.last.run.ts.file";

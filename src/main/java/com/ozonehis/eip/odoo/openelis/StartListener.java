@@ -4,6 +4,7 @@ import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
@@ -60,6 +61,7 @@ public class StartListener {
             sub.setStatus(SubscriptionStatus.REQUESTED);
             sub.setCriteria(Constants.SUBSCRIPTION_CRITERIA);
             sub.setChannel(channel);
+            sub.addExtension(Constants.EXT, new BooleanType(true));
             openElisClient.create(sub);
         } else {
             boolean endpointChanged = !endpoint.equals(sub.getChannel().getEndpoint());
