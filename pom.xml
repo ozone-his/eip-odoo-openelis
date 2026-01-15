@@ -91,6 +91,8 @@
                                     <include>commons-io:commons-io</include>
                                     <include>ca.uhn.hapi.fhir:*</include>
                                     <include>org.apache.httpcomponents:*</include>
+                                    <include>com.google.guava:*</include>
+                                    <include>io.opentelemetry:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
