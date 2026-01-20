@@ -174,6 +174,34 @@ public abstract class BaseFhirClient {
         }
     }
 
+
+    /**
+     * Deletes a resource of the specified type with the given ID from the fhir server.
+     *
+     * @param resourceType the type of the resource to be deleted
+     * @param id           the identifier of the resource to be deleted
+     */
+    public void delete(String resourceType, String id) {
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting {}/{} in {}", resourceType, id, sourceName);
+        }
+
+        MethodOutcome outcome;
+        try {
+            outcome = getFhirClient().delete().resourceById(resourceType, id).execute();
+        } catch (Exception e) {
+            throw new RuntimeException(getErrorMessage(e, resourceType, "delete"));
+        }
+
+        if (outcome.getResponseStatusCode() != 200) {
+            throw new RuntimeException("Unexpected outcome " + outcome + " when deleting " + resourceType + "/" + id + " from " + sourceName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully delete {}/{} in {}", resourceType, id, sourceName);
+        }
+    }
+
     protected String getErrorMessage(Exception e, String resourceName, String operation) {
         String msg = getServerErrorMessage(e);
         if (StringUtils.isBlank(msg)) {

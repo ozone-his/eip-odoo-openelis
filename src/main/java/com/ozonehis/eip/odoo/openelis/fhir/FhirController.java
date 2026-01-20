@@ -3,13 +3,14 @@ package com.ozonehis.eip.odoo.openelis.fhir;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @RequestMapping("/fhir")
 @Slf4j
 public class FhirController {
@@ -22,18 +23,34 @@ public class FhirController {
     }
 
     /**
-     * Handles FHIR PUT requests and forwards the request body to Fhir Odoo service via the {@link OdooFhirClient}
+     * Handles FHIR requests to create or update a resource by forwarding it to the FHIR Odoo service via the {@link OdooFhirClient}
      *
      * @param resourceType The resource type name
      * @param id           The id of the resource being updated.
      * @param body         The incoming FHIR resource payload.
      */
     @PutMapping("{resourceType}/{id}")
-    public void onCreateOrUpdate(@PathVariable String resourceType, @PathVariable String id, @RequestBody String body) {
+    public void createOrUpdate(@PathVariable String resourceType, @PathVariable String id, @RequestBody String body) {
         try {
             odooFhirClient.update(resourceType, id, body);
         } catch (Throwable e) {
-            log.warn("Failed to update resource {}/{}", resourceType, id, e);
+            log.error("Failed to update resource {}/{}", resourceType, id, e);
+            // Ignore failures otherwise OpenELIS will keep re-submitting it.
+        }
+    }
+
+    /**
+     * Handles FHIR requests to delete a resource by forwarding it to the FHIR Odoo service via the {@link OdooFhirClient}
+     *
+     * @param resourceType The resource type name
+     * @param id           The id of the resource being deleted.
+     */
+    @DeleteMapping("{resourceType}/{id}")
+    public void delete(@PathVariable String resourceType, @PathVariable String id) {
+        try {
+            odooFhirClient.delete(resourceType, id);
+        } catch (Throwable e) {
+            log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
         }
     }
