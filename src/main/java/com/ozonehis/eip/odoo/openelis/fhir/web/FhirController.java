@@ -1,6 +1,7 @@
-package com.ozonehis.eip.odoo.openelis.fhir;
+package com.ozonehis.eip.odoo.openelis.fhir.web;
 
 
+import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
