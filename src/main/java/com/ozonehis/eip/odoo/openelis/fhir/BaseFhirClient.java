@@ -145,6 +145,35 @@ public abstract class BaseFhirClient {
         }
     }
 
+
+    /**
+     * Updates a resource of the specified type with the given ID in the fhir server.
+     *
+     * @param resourceType the type of the resource to be updated
+     * @param id           the identifier of the resource to be updated
+     * @param payload      the FHIR resource payload
+     */
+    public void update(String resourceType, String id, String payload) {
+        if (log.isDebugEnabled()) {
+            log.debug("Updating {}/{} in {}", resourceType, id, sourceName);
+        }
+
+        MethodOutcome outcome;
+        try {
+            outcome = getFhirClient().update().resource(payload).withId(id).execute();
+        } catch (Exception e) {
+            throw new RuntimeException(getErrorMessage(e, resourceType, "update"));
+        }
+
+        if (outcome.getResponseStatusCode() != 200) {
+            throw new RuntimeException("Unexpected outcome " + outcome + " when updating " + resourceType + "/" + id + " in " + sourceName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully updated {}/{} in {}", resourceType, id, sourceName);
+        }
+    }
+
     protected String getErrorMessage(Exception e, String resourceName, String operation) {
         String msg = getServerErrorMessage(e);
         if (StringUtils.isBlank(msg)) {
