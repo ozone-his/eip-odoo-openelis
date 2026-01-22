@@ -34,14 +34,15 @@ public class FhirController {
      */
     @PutMapping("{resourceType}/{id}")
     public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
+        int status = 200;
         try {
-            return ResponseEntity.status(odooFhirClient.update(resourceType, id, body)).build();
+            status = odooFhirClient.update(resourceType, id, body);
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
         }
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(status).build();
     }
 
     /**
