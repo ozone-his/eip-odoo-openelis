@@ -152,8 +152,9 @@ public abstract class BaseFhirClient {
      * @param resourceType the type of the resource to be updated
      * @param id           the identifier of the resource to be updated
      * @param payload      the FHIR resource payload
+     * @return the http status code
      */
-    public void update(String resourceType, String id, String payload) {
+    public int update(String resourceType, String id, String payload) {
         if (log.isDebugEnabled()) {
             log.debug("Updating {}/{} in {}", resourceType, id, sourceName);
         }
@@ -172,6 +173,8 @@ public abstract class BaseFhirClient {
         if (log.isDebugEnabled()) {
             log.debug("Successfully updated {}/{} in {}", resourceType, id, sourceName);
         }
+
+        return outcome.getResponseStatusCode();
     }
 
 

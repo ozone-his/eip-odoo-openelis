@@ -4,6 +4,7 @@ package com.ozonehis.eip.odoo.openelis.fhir.web;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,15 +30,18 @@ public class FhirController {
      * @param resourceType The resource type name
      * @param id           The id of the resource being updated.
      * @param body         The incoming FHIR resource payload.
+     * @return ResponseEntity object
      */
     @PutMapping("{resourceType}/{id}")
-    public void createOrUpdate(@PathVariable String resourceType, @PathVariable String id, @RequestBody String body) {
+    public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
         try {
-            odooFhirClient.update(resourceType, id, body);
+            return ResponseEntity.status(odooFhirClient.update(resourceType, id, body)).build();
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
         }
+
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -45,15 +49,18 @@ public class FhirController {
      *
      * @param resourceType The resource type name
      * @param id           The id of the resource being deleted.
+     * @return ResponseEntity object
      */
     @DeleteMapping("{resourceType}/{id}")
-    public void delete(@PathVariable String resourceType, @PathVariable String id) {
+    public ResponseEntity delete(@PathVariable String resourceType, @PathVariable String id) {
         try {
             odooFhirClient.delete(resourceType, id);
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
         }
+
+        return ResponseEntity.noContent().build();
     }
 
 }
