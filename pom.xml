@@ -18,6 +18,7 @@
         <junitVersion>5.13.4</junitVersion>
         <mockitoJunitVersion>5.20.0</mockitoJunitVersion>
         <lombokVersion>1.18.30</lombokVersion>
+        <jsonPathVersion>2.8.0</jsonPathVersion>
     </properties>
 
     <dependencyManagement>
@@ -56,6 +57,17 @@
             <artifactId>lombok</artifactId>
             <version>${lombokVersion}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonPathVersion}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--Test dependencies -->

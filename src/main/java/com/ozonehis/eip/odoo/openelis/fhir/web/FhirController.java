@@ -1,6 +1,8 @@
 package com.ozonehis.eip.odoo.openelis.fhir.web;
 
 
+import com.jayway.jsonpath.JsonPath;
+import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +14,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/fhir")
 @Slf4j
 public class FhirController {
+
+    private static final Map<String, LocalDateTime> ID_LAST_UPDATED_MAP = Collections.synchronizedMap(new HashMap<>());
 
     private final OdooFhirClient odooFhirClient;
 
@@ -37,6 +46,11 @@ public class FhirController {
         int status = 200;
         try {
             status = odooFhirClient.update(resourceType, id, body);
+            LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(body, "meta.lastUpdated"));
+            ID_LAST_UPDATED_MAP.put(resourceType + id, lastUpdated);
+            if (log.isDebugEnabled()) {
+                log.debug("Storing id={} with lastUpdated={}", id, lastUpdated);
+            }
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
@@ -56,6 +70,7 @@ public class FhirController {
     public ResponseEntity delete(@PathVariable String resourceType, @PathVariable String id) {
         try {
             odooFhirClient.delete(resourceType, id);
+            ID_LAST_UPDATED_MAP.put(resourceType + id, null);
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.
