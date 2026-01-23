@@ -15,8 +15,6 @@
         <maven.compiler.release>17</maven.compiler.release>
         <springbootVersion>3.5.9</springbootVersion>
         <hapiFhirVersion>8.4.0</hapiFhirVersion>
-        <junitVersion>5.13.4</junitVersion>
-        <mockitoJunitVersion>5.20.0</mockitoJunitVersion>
         <lombokVersion>1.18.30</lombokVersion>
         <jsonPathVersion>2.8.0</jsonPathVersion>
     </properties>
@@ -74,13 +72,11 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junitVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockitoJunitVersion}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

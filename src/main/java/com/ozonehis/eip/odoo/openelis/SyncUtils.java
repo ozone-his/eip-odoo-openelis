@@ -29,17 +29,6 @@ public class SyncUtils {
     }
 
     /**
-     * Retrieves the last updated timestamp for a given resource type and id.
-     *
-     * @param resourceType the type of the resource
-     * @param id           the identifier of the resource
-     * @return the last updated timestamp of the resource, or null if no entry exists
-     */
-    private static LocalDateTime getLastUpdated(String resourceType, String id) {
-        return ID_LAST_UPDATED_MAP.get(resourceType + id);
-    }
-
-    /**
      * Clears all resource and lastUpdated timestamp entries.
      */
     public static void clearLastUpdatedTimestamps() {
@@ -61,9 +50,23 @@ public class SyncUtils {
                 LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(payload, "meta.lastUpdated"));
                 return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
             }
+        } else {
+            //This is a deleted entity
+            return ID_LAST_UPDATED_MAP.containsKey(resourceType + id) && getLastUpdated(resourceType, id) == null;
         }
 
         return false;
+    }
+
+    /**
+     * Retrieves the last updated timestamp for a given resource type and id.
+     *
+     * @param resourceType the type of the resource
+     * @param id           the identifier of the resource
+     * @return the last updated timestamp of the resource, or null if no entry exists
+     */
+    private static LocalDateTime getLastUpdated(String resourceType, String id) {
+        return ID_LAST_UPDATED_MAP.get(resourceType + id);
     }
 
 }

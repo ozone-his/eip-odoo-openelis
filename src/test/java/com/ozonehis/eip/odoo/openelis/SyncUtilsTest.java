@@ -37,8 +37,8 @@ public class SyncUtilsTest {
     @Test
     public void skip_shouldReturnTrueIfLastUpdatedTimestampIsBeforePreviousOne() {
         final String id = "5";
-        String payload = "{\"meta\": {\"lastUpdated\": \"2019-06-30T18:25:43.511Z\"}}";
         SyncUtils.saveLastUpdated(RESOURCE_TYPE, id, DateUtils.deserialize("2019-06-30T18:25:43.512Z"));
+        String payload = "{\"meta\": {\"lastUpdated\": \"2019-06-30T18:25:43.511Z\"}}";
         assertTrue(SyncUtils.skip(RESOURCE_TYPE, id, payload));
     }
 
@@ -49,6 +49,27 @@ public class SyncUtilsTest {
         String payload = "{\"meta\": {\"lastUpdated\": \"" + lastUpdated + "\"}}";
         SyncUtils.saveLastUpdated(RESOURCE_TYPE, id, DateUtils.deserialize(lastUpdated));
         assertTrue(SyncUtils.skip(RESOURCE_TYPE, id, payload));
+    }
+
+    @Test
+    public void skip_shouldReturnTrueForAProcessedDeletedEvent() {
+        final String id = "5";
+        SyncUtils.saveLastUpdated(RESOURCE_TYPE, id, null);
+        assertTrue(SyncUtils.skip(RESOURCE_TYPE, id, null));
+    }
+
+    @Test
+    public void clearLastUpdatedTimestamps_shouldClearAllSavedTimestamps() {
+        String payload1 = "{\"meta\": {\"lastUpdated\": \"2022-01-01T10:00:00.000Z\"}}";
+        SyncUtils.saveLastUpdated(RESOURCE_TYPE, "1", DateUtils.deserialize("2022-01-01T10:00:00.001Z"));
+        SyncUtils.saveLastUpdated(RESOURCE_TYPE, "2", null);
+        assertTrue(SyncUtils.skip(RESOURCE_TYPE, "1", payload1));
+        assertTrue(SyncUtils.skip(RESOURCE_TYPE, "2", null));
+
+        SyncUtils.clearLastUpdatedTimestamps();
+
+        assertFalse(SyncUtils.skip(RESOURCE_TYPE, "1", payload1));
+        assertFalse(SyncUtils.skip(RESOURCE_TYPE, "2", null));
     }
 
 }
