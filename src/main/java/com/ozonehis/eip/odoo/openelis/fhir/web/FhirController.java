@@ -43,9 +43,6 @@ public class FhirController {
             status = odooFhirClient.update(resourceType, id, body);
             LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(body, "meta.lastUpdated"));
             SyncUtils.saveLastUpdated(resourceType, id, lastUpdated);
-            if (log.isDebugEnabled()) {
-                log.debug("Storing id={} with lastUpdated={}", id, lastUpdated);
-            }
         } catch (Throwable e) {
             log.error("Failed to update resource {}/{}", resourceType, id, e);
             // Ignore failures otherwise OpenELIS will keep re-submitting it.

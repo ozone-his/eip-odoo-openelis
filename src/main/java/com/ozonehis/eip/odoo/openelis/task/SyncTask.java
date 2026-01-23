@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
+import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +58,16 @@ public class SyncTask {
         }
 
         resources.parallelStream().forEach(r -> {
-            odooClient.update(r);
+            //To minimize duplication, skip
+            if (!SyncUtils.skip(r)) {
+                odooClient.update(r);
+            } else if (log.isDebugEnabled()) {
+                log.debug("Skipping resource {}/{} lastUpdated at ", r.fhirType(), r.getId(), SyncUtils.getLastUpdatedTimeStamp(r));
+            }
         });
 
         timestampStore.update(now, resourceType);
+        SyncUtils.clearLastUpdatedTimestamps();
     }
 
 }

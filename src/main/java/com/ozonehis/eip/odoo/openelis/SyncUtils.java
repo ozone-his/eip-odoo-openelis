@@ -2,6 +2,7 @@ package com.ozonehis.eip.odoo.openelis;
 
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.DomainResource;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -36,12 +37,12 @@ public class SyncUtils {
     }
 
     /**
-     * Determines whether an event for a given resource should be skipped based on its last updated timestamp.
+     * Determines whether a resource of the specified type, id and payload should be skipped based on its last updated timestamp.
      *
      * @param resourceType the type of the resource
      * @param id           the id of the resource
      * @param payload      the JSON payload of the resource
-     * @return true if the event should be skipped otherwise false.
+     * @return true if the resource should be skipped otherwise false.
      */
     public static boolean skip(String resourceType, String id, String payload) {
         if (payload != null) {
@@ -51,11 +52,37 @@ public class SyncUtils {
                 return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
             }
         } else {
-            //This is a deleted entity
+            //This is a deleted resource
             return ID_LAST_UPDATED_MAP.containsKey(resourceType + id) && getLastUpdated(resourceType, id) == null;
         }
 
         return false;
+    }
+
+    /**
+     * Determines whether an event for a given resource should be skipped based on its last updated timestamp.
+     *
+     * @param resource the resource
+     * @return true if the resource should be skipped otherwise false.
+     */
+    public static boolean skip(DomainResource resource) {
+        LocalDateTime previousLastUpdated = getLastUpdated(resource.fhirType(), resource.getId());
+        if (previousLastUpdated != null) {
+            LocalDateTime lastUpdated = getLastUpdatedTimeStamp(resource);
+            return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
+        }
+
+        return false;
+    }
+
+    /**
+     * Retrieves the last updated timestamp of the given resource.
+     *
+     * @param resource the resource object whose last updated timestamp is to be retrieved
+     * @return the last updated timestamp as a LocalDateTime object
+     */
+    public static LocalDateTime getLastUpdatedTimeStamp(DomainResource resource) {
+        return DateUtils.toLocalDateTime(resource.getMeta().getLastUpdated());
     }
 
     /**

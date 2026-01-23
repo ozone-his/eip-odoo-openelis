@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static java.time.ZoneId.systemDefault;
 
@@ -36,6 +37,21 @@ public class DateUtils {
      */
     public static LocalDateTime deserialize(String date) {
         return ZonedDateTime.parse(date, DATE_FORMATTER).withZoneSameInstant(systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * Convert Date to LocalDateTime.
+     *
+     * @param date
+     * @return LocalDateTime instance
+     */
+    public static LocalDateTime toLocalDateTime(Date date) {
+        if (date != null) {
+            return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+        }
+
+        return null;
+
     }
 
 }
