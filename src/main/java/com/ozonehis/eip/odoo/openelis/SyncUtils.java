@@ -60,7 +60,7 @@ public class SyncUtils {
      * @return true if the resource should be skipped otherwise false.
      */
     public static boolean skip(DomainResource resource) {
-        return skip(resource.fhirType(), resource.getId(), getLastUpdatedTimeStamp(resource));
+        return skip(resource.fhirType(), resource.getIdPart(), getLastUpdatedTimeStamp(resource));
     }
 
     /**

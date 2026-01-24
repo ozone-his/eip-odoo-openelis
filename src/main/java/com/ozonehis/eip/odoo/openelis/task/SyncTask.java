@@ -62,7 +62,7 @@ public class SyncTask {
             if (!SyncUtils.skip(r)) {
                 odooClient.update(r);
             } else if (log.isDebugEnabled()) {
-                log.debug("Skipping resource {}/{} lastUpdated at ", r.fhirType(), r.getId(), SyncUtils.getLastUpdatedTimeStamp(r));
+                log.debug("Skipping resource {}/{} lastUpdated at {}", r.fhirType(), r.getIdPart(), SyncUtils.getLastUpdatedTimeStamp(r));
             }
         });
 
