@@ -46,33 +46,21 @@ public class SyncUtils {
      */
     public static boolean skip(String resourceType, String id, String payload) {
         if (payload != null) {
-            LocalDateTime previousLastUpdated = getLastUpdated(resourceType, id);
-            if (previousLastUpdated != null) {
-                LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(payload, "meta.lastUpdated"));
-                return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
-            }
-        } else {
-            //This is a deleted resource
-            return ID_LAST_UPDATED_MAP.containsKey(resourceType + id) && getLastUpdated(resourceType, id) == null;
+            return skip(resourceType, id, DateUtils.deserialize(JsonPath.read(payload, "meta.lastUpdated")));
         }
 
-        return false;
+        //This is a deleted resource
+        return ID_LAST_UPDATED_MAP.containsKey(resourceType + id) && getLastUpdated(resourceType, id) == null;
     }
 
     /**
-     * Determines whether an event for a given resource should be skipped based on its last updated timestamp.
+     * Determines whether a given resource should be skipped based on its last updated timestamp.
      *
      * @param resource the resource
      * @return true if the resource should be skipped otherwise false.
      */
     public static boolean skip(DomainResource resource) {
-        LocalDateTime previousLastUpdated = getLastUpdated(resource.fhirType(), resource.getId());
-        if (previousLastUpdated != null) {
-            LocalDateTime lastUpdated = getLastUpdatedTimeStamp(resource);
-            return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
-        }
-
-        return false;
+        return skip(resource.fhirType(), resource.getId(), getLastUpdatedTimeStamp(resource));
     }
 
     /**
@@ -83,6 +71,22 @@ public class SyncUtils {
      */
     public static LocalDateTime getLastUpdatedTimeStamp(DomainResource resource) {
         return DateUtils.toLocalDateTime(resource.getMeta().getLastUpdated());
+    }
+
+    /**
+     * Determines whether a given resource should be skipped based on the specified last updated timestamp.
+     *
+     * @param resourceType the type of the resource
+     * @param id           the id of the resource
+     * @return true if the resource should be skipped otherwise false.
+     */
+    private static boolean skip(String resourceType, String id, LocalDateTime lastUpdated) {
+        LocalDateTime previousLastUpdated = getLastUpdated(resourceType, id);
+        if (previousLastUpdated != null) {
+            return lastUpdated.isBefore(previousLastUpdated) || lastUpdated.equals(previousLastUpdated);
+        }
+
+        return false;
     }
 
     /**

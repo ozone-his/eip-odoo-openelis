@@ -42,7 +42,7 @@ public class DateUtils {
     /**
      * Convert Date to LocalDateTime.
      *
-     * @param date
+     * @param date the date to convert
      * @return LocalDateTime instance
      */
     public static LocalDateTime toLocalDateTime(Date date) {
