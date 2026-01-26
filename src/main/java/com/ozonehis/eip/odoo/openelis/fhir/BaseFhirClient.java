@@ -87,7 +87,7 @@ public abstract class BaseFhirClient {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("No {} found in hcw@home with identifier: {}", resource, externalId);
+            log.debug("No {} found in {} with identifier: {}", resource, sourceName, externalId);
         }
 
         return null;
