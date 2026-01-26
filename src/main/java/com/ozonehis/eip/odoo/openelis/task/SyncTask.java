@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
+import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -14,9 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
@@ -30,6 +33,9 @@ public class SyncTask {
     private OpenElisFhirClient openElisClient;
 
     private OdooFhirClient odooClient;
+
+    @Value("${" + Constants.PROP_SYNC_OVERLAP + "}")
+    private long overlap;
 
     public SyncTask(TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
         this.timestampStore = timestampStore;
@@ -50,6 +56,8 @@ public class SyncTask {
         LocalDateTime since = timestampStore.getTimestamp(resourceType);
         if (since == null) {
             since = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+        } else {
+            since = since.minus(overlap, ChronoUnit.MILLIS);
         }
 
         List<? extends DomainResource> resources = openElisClient.getModifiedResources(resourceType, since);

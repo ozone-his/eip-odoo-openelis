@@ -23,4 +23,6 @@ public class Constants {
 
     public static final String PROP_DELAY = "eip.sync.task.delay";
 
+    public static final String PROP_SYNC_OVERLAP = "eip.sync.task.ts.overlap";
+
 }
