@@ -78,6 +78,7 @@ public class SyncUtils {
      *
      * @param resourceType the type of the resource
      * @param id           the id of the resource
+     * @param lastUpdated  the resource lastUpdated date
      * @return true if the resource should be skipped otherwise false.
      */
     private static boolean skip(String resourceType, String id, LocalDateTime lastUpdated) {

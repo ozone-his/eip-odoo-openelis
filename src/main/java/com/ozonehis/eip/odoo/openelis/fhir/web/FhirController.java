@@ -4,7 +4,9 @@ import com.jayway.jsonpath.JsonPath;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
+import com.ozonehis.eip.odoo.openelis.task.SyncTask;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 @RequestMapping("/fhir")
@@ -23,9 +26,12 @@ public class FhirController {
 
     private final OdooFhirClient odooFhirClient;
 
+    private SyncTask syncTask;
+
     @Autowired
-    public FhirController(OdooFhirClient odooFhirClient) {
+    public FhirController(OdooFhirClient odooFhirClient, SyncTask syncTask) {
         this.odooFhirClient = odooFhirClient;
+        this.syncTask = syncTask;
     }
 
     /**
@@ -40,6 +46,7 @@ public class FhirController {
     public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
         int status = 200;
         try {
+            waitForSyncTask();
             status = odooFhirClient.update(resourceType, id, body);
             LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(body, "meta.lastUpdated"));
             SyncUtils.saveLastUpdated(resourceType, id, lastUpdated);
@@ -61,6 +68,7 @@ public class FhirController {
     @DeleteMapping("{resourceType}/{id}")
     public ResponseEntity delete(@PathVariable String resourceType, @PathVariable String id) {
         try {
+            waitForSyncTask();
             odooFhirClient.delete(resourceType, id);
             SyncUtils.saveLastUpdated(resourceType, id, null);
         } catch (Throwable e) {
@@ -69,6 +77,35 @@ public class FhirController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    private void waitForSyncTask() throws InterruptedException {
+        boolean waitForTask = syncTask.isExecuting();
+        if (waitForTask) {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            while (syncTask.isExecuting()) {
+                long wait = stopWatch.getTime(TimeUnit.MILLISECONDS);
+                if (wait > 60000) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Wait time for sync task has expired after {} seconds.", wait / 1000);
+                    }
+
+                    break;
+                }
+
+                if (log.isTraceEnabled()) {
+                    log.trace("Waiting for sync task to complete...");
+                }
+
+                Thread.sleep(1000);
+            }
+
+            stopWatch.stop();
+            if (log.isDebugEnabled()) {
+                log.debug("Done waiting for sync task after {} seconds.", stopWatch.getTime(TimeUnit.SECONDS));
+            }
+        }
     }
 
 }

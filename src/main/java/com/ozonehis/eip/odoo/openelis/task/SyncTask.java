@@ -37,16 +37,27 @@ public class SyncTask {
     @Value("${" + Constants.PROP_SYNC_OVERLAP + "}")
     private long overlap;
 
+    private static boolean executing = false;
+
     public SyncTask(TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
         this.timestampStore = timestampStore;
         this.openElisClient = openElisClient;
         this.odooClient = odooClient;
     }
 
+    public boolean isExecuting() {
+        return executing;
+    }
+
     @Scheduled(initialDelayString = "${" + PROP_INITIAL_DELAY + "}", fixedDelayString = "${" + PROP_DELAY + "}")
     public void execute() {
-        sync(Patient.class);
-        sync(ServiceRequest.class);
+        executing = true;
+        try {
+            sync(Patient.class);
+            sync(ServiceRequest.class);
+        } finally {
+            executing = false;
+        }
     }
 
     public void sync(Class<? extends DomainResource> resourceType) {
