@@ -28,7 +28,7 @@ public class StartListener {
         initializeSubscriptions();
     }
 
-    protected void initializeSubscriptions() {
+    private void initializeSubscriptions() {
         if (log.isDebugEnabled()) {
             log.debug("Checking if the Patient and ServiceRequest subscription exists in OpenELIS");
         }

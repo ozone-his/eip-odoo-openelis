@@ -17,6 +17,7 @@
         <hapiFhirVersion>8.4.0</hapiFhirVersion>
         <lombokVersion>1.18.30</lombokVersion>
         <jsonPathVersion>2.8.0</jsonPathVersion>
+        <powerMockVersion>2.0.9</powerMockVersion>
     </properties>
 
     <dependencyManagement>
@@ -78,6 +79,11 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-core</artifactId>
+            <version>${powerMockVersion}</version>
         </dependency>
     </dependencies>
 
