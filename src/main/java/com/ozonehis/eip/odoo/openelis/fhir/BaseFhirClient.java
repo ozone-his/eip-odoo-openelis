@@ -111,7 +111,7 @@ public abstract class BaseFhirClient {
         }
 
         if (!outcome.getCreated()) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when creating " + resource.fhirType() + " in " + sourceName);
+            throw new RuntimeException("Unexpected status code " + outcome.getResponseStatusCode() + " when creating " + resource.fhirType() + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -136,8 +136,9 @@ public abstract class BaseFhirClient {
             throw new RuntimeException(getErrorMessage(e, resource.fhirType(), "update"));
         }
 
-        if (outcome.getResponseStatusCode() != 200) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when updating " + resource.fhirType() + " in " + sourceName);
+        int code = outcome.getResponseStatusCode();
+        if (code != 200) {
+            throw new RuntimeException("Unexpected status code " + code + " when updating " + resource.fhirType() + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -166,8 +167,9 @@ public abstract class BaseFhirClient {
             throw new RuntimeException(getErrorMessage(e, resourceType, "update"));
         }
 
-        if (outcome.getResponseStatusCode() != 200) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when updating " + resourceType + "/" + id + " in " + sourceName);
+        int code = outcome.getResponseStatusCode();
+        if (code != 200) {
+            throw new RuntimeException("Unexpected status code " + code + " when updating " + resourceType + "/" + id + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -196,8 +198,9 @@ public abstract class BaseFhirClient {
             throw new RuntimeException(getErrorMessage(e, resourceType, "delete"));
         }
 
-        if (outcome.getResponseStatusCode() != 200) {
-            throw new RuntimeException("Unexpected outcome " + outcome + " when deleting " + resourceType + "/" + id + " from " + sourceName);
+        int code = outcome.getResponseStatusCode();
+        if (code != 200) {
+            throw new RuntimeException("Unexpected outcome " + code + " when deleting " + resourceType + "/" + id + " from " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
