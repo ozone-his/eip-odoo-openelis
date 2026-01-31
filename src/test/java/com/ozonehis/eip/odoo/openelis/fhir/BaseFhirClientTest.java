@@ -8,6 +8,9 @@ import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.ICriterionInternal;
 import ca.uhn.fhir.rest.gclient.IQuery;
 import ca.uhn.fhir.rest.gclient.IUntypedQuery;
+import ca.uhn.fhir.rest.gclient.IUpdate;
+import ca.uhn.fhir.rest.gclient.IUpdateExecutable;
+import ca.uhn.fhir.rest.gclient.IUpdateTyped;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Patient;
@@ -107,8 +110,8 @@ public class BaseFhirClientTest {
         ICreateTyped mockCreateTyped = Mockito.mock(ICreateTyped.class);
         MethodOutcome outcome = new MethodOutcome();
         outcome.setCreated(true);
-        Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         Mockito.when(mockFhirClient.create()).thenReturn(mockCreate);
+        Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         Mockito.when(mockCreateTyped.execute()).thenReturn(outcome);
 
         baseClient.create(patient);
@@ -121,9 +124,9 @@ public class BaseFhirClientTest {
         Patient patient = new Patient();
         ICreate mockCreate = Mockito.mock(ICreate.class);
         ICreateTyped mockCreateTyped = Mockito.mock(ICreateTyped.class);
+        Mockito.when(mockFhirClient.create()).thenReturn(mockCreate);
         Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         Mockito.when(mockCreateTyped.execute()).thenThrow(new RuntimeException("test"));
-        Mockito.when(mockFhirClient.create()).thenReturn(mockCreate);
 
         RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.create(patient));
 
@@ -134,18 +137,123 @@ public class BaseFhirClientTest {
     public void create_shouldThrowRuntimeExceptionWhenOutcomeIsNotCreated() {
         final int status = 403;
         Patient patient = new Patient();
-        ICreate create = Mockito.mock(ICreate.class);
-        ICreateTyped createTyped = Mockito.mock(ICreateTyped.class);
-        Mockito.when(create.resource(patient)).thenReturn(createTyped);
-        Mockito.when(mockFhirClient.create()).thenReturn(create);
+        ICreate mockCreate = Mockito.mock(ICreate.class);
+        ICreateTyped mockCreateTyped = Mockito.mock(ICreateTyped.class);
+        Mockito.when(mockFhirClient.create()).thenReturn(mockCreate);
+        Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         MethodOutcome outcome = new MethodOutcome();
         outcome.setCreated(false);
         outcome.setResponseStatusCode(status);
-        Mockito.when(createTyped.execute()).thenReturn(outcome);
+        Mockito.when(mockCreateTyped.execute()).thenReturn(outcome);
 
         RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.create(patient));
 
         final String msg = "Unexpected status code " + status + " when creating Patient in Odoo";
+        Assertions.assertEquals(msg, e.getMessage());
+    }
+
+    @Test
+    public void update_shouldCallFhirClientWithResource() {
+        Patient patient = new Patient();
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(200);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(patient)).thenReturn(mockUpdateTyped);
+        Mockito.when(mockUpdateTyped.execute()).thenReturn(outcome);
+
+        baseClient.update(patient);
+
+        Mockito.verify(mockUpdateTyped).execute();
+    }
+
+    @Test
+    public void update_shouldThrowRuntimeExceptionWhenExceptionOccurs() {
+        Patient patient = new Patient();
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(patient)).thenReturn(mockUpdateTyped);
+        Mockito.when(mockUpdateTyped.execute()).thenThrow(new RuntimeException("test"));
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update(patient));
+
+        Assertions.assertEquals("Failed to update Patient in Odoo", e.getMessage());
+    }
+
+    @Test
+    public void update_shouldThrowRuntimeExceptionWhenOutcomeIsNotOk() {
+        final int status = 403;
+        Patient patient = new Patient();
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(patient)).thenReturn(mockUpdateTyped);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(status);
+        Mockito.when(mockUpdateTyped.execute()).thenReturn(outcome);
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update(patient));
+
+        final String msg = "Unexpected status code " + status + " when updating Patient in Odoo";
+        Assertions.assertEquals(msg, e.getMessage());
+    }
+
+    @Test
+    public void update_shouldCallFhirClientWithResourceAndId() {
+        final String id = "12345";
+        final String data = "{}";
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        IUpdateExecutable mockExecutable = Mockito.mock(IUpdateExecutable.class);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(200);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(data)).thenReturn(mockUpdateTyped);
+        Mockito.when(mockUpdateTyped.withId(id)).thenReturn(mockExecutable);
+        Mockito.when(mockExecutable.execute()).thenReturn(outcome);
+
+        baseClient.update("Patient", id, data);
+
+        Mockito.verify(mockExecutable).execute();
+    }
+
+    @Test
+    public void update_shouldThrowRuntimeExceptionWhenCalledWithResourceAndIdAndExceptionOccurs() {
+        final String id = "12345";
+        final String data = "{}";
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        IUpdateExecutable mockExecutable = Mockito.mock(IUpdateExecutable.class);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(data)).thenReturn(mockUpdateTyped);
+        Mockito.when(mockUpdateTyped.withId(id)).thenReturn(mockExecutable);
+        Mockito.when(mockExecutable.execute()).thenThrow(new RuntimeException("test"));
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update("Patient", id, data));
+
+        Assertions.assertEquals("Failed to update Patient in Odoo", e.getMessage());
+    }
+
+    @Test
+    public void update_shouldThrowRuntimeExceptionWhenCalledWithResourceAndIdAndOutcomeIsNotOk() {
+        final String id = "12345";
+        final String data = "{}";
+        final int status = 403;
+        IUpdate mockUpdate = Mockito.mock(IUpdate.class);
+        IUpdateTyped mockUpdateTyped = Mockito.mock(IUpdateTyped.class);
+        IUpdateExecutable mockExecutable = Mockito.mock(IUpdateExecutable.class);
+        Mockito.when(mockFhirClient.update()).thenReturn(mockUpdate);
+        Mockito.when(mockUpdate.resource(data)).thenReturn(mockUpdateTyped);
+        Mockito.when(mockUpdateTyped.withId(id)).thenReturn(mockExecutable);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(status);
+        Mockito.when(mockExecutable.execute()).thenReturn(outcome);
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update("Patient", id, data));
+
+        final String msg = "Unexpected status code " + status + " when updating Patient/" + id + " in Odoo";
         Assertions.assertEquals(msg, e.getMessage());
     }
 
