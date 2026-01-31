@@ -6,6 +6,8 @@ import ca.uhn.fhir.rest.gclient.ICreate;
 import ca.uhn.fhir.rest.gclient.ICreateTyped;
 import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.ICriterionInternal;
+import ca.uhn.fhir.rest.gclient.IDelete;
+import ca.uhn.fhir.rest.gclient.IDeleteTyped;
 import ca.uhn.fhir.rest.gclient.IQuery;
 import ca.uhn.fhir.rest.gclient.IUntypedQuery;
 import ca.uhn.fhir.rest.gclient.IUpdate;
@@ -37,17 +39,17 @@ public class BaseFhirClientTest {
     @Mock
     private IQuery mockQuery;
 
-    private BaseFhirClient baseClient;
+    private BaseFhirClient client;
 
     @BeforeEach
     void setUp() {
-        baseClient = Mockito.spy(new OdooFhirClient());
-        Mockito.lenient().doReturn(mockFhirClient).when(baseClient).getFhirClient();
+        client = Mockito.spy(new OdooFhirClient());
+        Mockito.lenient().doReturn(mockFhirClient).when(client).getFhirClient();
     }
 
     @Test
     public void getByIdentifier_shouldReturnThePatientWithTheMatchingExternalId() {
-        String extId = "12345";
+        final String extId = "12345";
         Bundle bundle = new Bundle();
         Patient patient = new Patient();
         bundle.addEntry().setResource(patient);
@@ -57,7 +59,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockQuery.where(paramCaptor.capture())).thenReturn(mockQuery);
         Mockito.when(mockQuery.execute()).thenReturn(bundle);
 
-        Patient resource = baseClient.getByIdentifier(extId, Patient.class);
+        Patient resource = client.getByIdentifier(extId, Patient.class);
 
         Assertions.assertEquals(patient, resource);
         ICriterionInternal criterion = (ICriterionInternal) paramCaptor.getValue();
@@ -67,14 +69,14 @@ public class BaseFhirClientTest {
 
     @Test
     public void getByIdentifier_shouldReturnNullIfNoResourceMatchesTheExternalId() {
-        String extId = "12345";
+        final String extId = "12345";
         Mockito.when(mockFhirClient.search()).thenReturn(mockUnTypedQuery);
         Mockito.when(mockUnTypedQuery.forResource(Patient.class)).thenReturn(mockQuery);
         ArgumentCaptor<ICriterion> paramCaptor = ArgumentCaptor.forClass(ICriterion.class);
         Mockito.when(mockQuery.where(paramCaptor.capture())).thenReturn(mockQuery);
         Mockito.doThrow(ResourceNotFoundException.class).when(mockQuery).execute();
 
-        Patient resource = baseClient.getByIdentifier(extId, Patient.class);
+        Patient resource = client.getByIdentifier(extId, Patient.class);
 
         Assertions.assertNull(resource);
         ICriterionInternal criterion = (ICriterionInternal) paramCaptor.getValue();
@@ -84,7 +86,7 @@ public class BaseFhirClientTest {
 
     @Test
     public void getByIdentifier_shouldFailIfMultipleResourcesMatchTheExternalId() {
-        String extId = "12345";
+        final String extId = "12345";
         Bundle bundle = new Bundle();
         bundle.addEntry().setResource(new Patient());
         bundle.addEntry().setResource(new Patient());
@@ -94,7 +96,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockQuery.where(paramCaptor.capture())).thenReturn(mockQuery);
         Mockito.when(mockQuery.execute()).thenReturn(bundle);
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.getByIdentifier(extId, Patient.class));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.getByIdentifier(extId, Patient.class));
 
         final String msg = "Found multiple resources of type Patient in Odoo with external identifier " + extId;
         Assertions.assertEquals(msg, e.getMessage());
@@ -114,7 +116,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         Mockito.when(mockCreateTyped.execute()).thenReturn(outcome);
 
-        baseClient.create(patient);
+        client.create(patient);
 
         Mockito.verify(mockCreateTyped).execute();
     }
@@ -128,7 +130,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockCreate.resource(patient)).thenReturn(mockCreateTyped);
         Mockito.when(mockCreateTyped.execute()).thenThrow(new RuntimeException("test"));
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.create(patient));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.create(patient));
 
         Assertions.assertEquals("Failed to create Patient in Odoo", e.getMessage());
     }
@@ -146,7 +148,7 @@ public class BaseFhirClientTest {
         outcome.setResponseStatusCode(status);
         Mockito.when(mockCreateTyped.execute()).thenReturn(outcome);
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.create(patient));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.create(patient));
 
         final String msg = "Unexpected status code " + status + " when creating Patient in Odoo";
         Assertions.assertEquals(msg, e.getMessage());
@@ -163,7 +165,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockUpdate.resource(patient)).thenReturn(mockUpdateTyped);
         Mockito.when(mockUpdateTyped.execute()).thenReturn(outcome);
 
-        baseClient.update(patient);
+        client.update(patient);
 
         Mockito.verify(mockUpdateTyped).execute();
     }
@@ -177,7 +179,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockUpdate.resource(patient)).thenReturn(mockUpdateTyped);
         Mockito.when(mockUpdateTyped.execute()).thenThrow(new RuntimeException("test"));
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update(patient));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.update(patient));
 
         Assertions.assertEquals("Failed to update Patient in Odoo", e.getMessage());
     }
@@ -194,7 +196,7 @@ public class BaseFhirClientTest {
         outcome.setResponseStatusCode(status);
         Mockito.when(mockUpdateTyped.execute()).thenReturn(outcome);
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update(patient));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.update(patient));
 
         final String msg = "Unexpected status code " + status + " when updating Patient in Odoo";
         Assertions.assertEquals(msg, e.getMessage());
@@ -214,7 +216,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockUpdateTyped.withId(id)).thenReturn(mockExecutable);
         Mockito.when(mockExecutable.execute()).thenReturn(outcome);
 
-        baseClient.update("Patient", id, data);
+        client.update("Patient", id, data);
 
         Mockito.verify(mockExecutable).execute();
     }
@@ -231,7 +233,7 @@ public class BaseFhirClientTest {
         Mockito.when(mockUpdateTyped.withId(id)).thenReturn(mockExecutable);
         Mockito.when(mockExecutable.execute()).thenThrow(new RuntimeException("test"));
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update("Patient", id, data));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.update("Patient", id, data));
 
         Assertions.assertEquals("Failed to update Patient in Odoo", e.getMessage());
     }
@@ -251,9 +253,60 @@ public class BaseFhirClientTest {
         outcome.setResponseStatusCode(status);
         Mockito.when(mockExecutable.execute()).thenReturn(outcome);
 
-        RuntimeException e = assertThrows(RuntimeException.class, () -> baseClient.update("Patient", id, data));
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.update("Patient", id, data));
 
         final String msg = "Unexpected status code " + status + " when updating Patient/" + id + " in Odoo";
+        Assertions.assertEquals(msg, e.getMessage());
+    }
+
+    @Test
+    public void delete_shouldCallFhirClientWithResource() {
+        final String id = "12345";
+        final String resourceType = "Patient";
+        IDelete mockDelete = Mockito.mock(IDelete.class);
+        IDeleteTyped mockDeleteTyped = Mockito.mock(IDeleteTyped.class);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(200);
+        Mockito.when(mockFhirClient.delete()).thenReturn(mockDelete);
+        Mockito.when(mockDelete.resourceById(resourceType, id)).thenReturn(mockDeleteTyped);
+        Mockito.when(mockDeleteTyped.execute()).thenReturn(outcome);
+
+        client.delete(resourceType, id);
+
+        Mockito.verify(mockDeleteTyped).execute();
+    }
+
+    @Test
+    public void delete_shouldThrowRuntimeExceptionWhenExceptionOccurs() {
+        final String id = "12345";
+        final String resourceType = "Patient";
+        IDelete mockDelete = Mockito.mock(IDelete.class);
+        IDeleteTyped mockDeleteTyped = Mockito.mock(IDeleteTyped.class);
+        Mockito.when(mockFhirClient.delete()).thenReturn(mockDelete);
+        Mockito.when(mockDelete.resourceById(resourceType, id)).thenReturn(mockDeleteTyped);
+        Mockito.when(mockDeleteTyped.execute()).thenThrow(new RuntimeException("test"));
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.delete(resourceType, id));
+
+        Assertions.assertEquals("Failed to delete Patient in Odoo", e.getMessage());
+    }
+
+    @Test
+    public void delete_shouldThrowRuntimeExceptionWhenOutcomeIsNotOk() {
+        final String id = "12345";
+        final String resourceType = "Patient";
+        final int status = 403;
+        IDelete mockDelete = Mockito.mock(IDelete.class);
+        IDeleteTyped mockDeleteTyped = Mockito.mock(IDeleteTyped.class);
+        Mockito.when(mockFhirClient.delete()).thenReturn(mockDelete);
+        Mockito.when(mockDelete.resourceById(resourceType, id)).thenReturn(mockDeleteTyped);
+        MethodOutcome outcome = new MethodOutcome();
+        outcome.setResponseStatusCode(status);
+        Mockito.when(mockDeleteTyped.execute()).thenReturn(outcome);
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.delete(resourceType, id));
+
+        final String msg = "Unexpected status code " + status + " when deleting Patient/" + id + " from Odoo";
         Assertions.assertEquals(msg, e.getMessage());
     }
 

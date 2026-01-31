@@ -200,7 +200,7 @@ public abstract class BaseFhirClient {
 
         int code = outcome.getResponseStatusCode();
         if (code != 200) {
-            throw new RuntimeException("Unexpected outcome " + code + " when deleting " + resourceType + "/" + id + " from " + sourceName);
+            throw new RuntimeException("Unexpected status code " + code + " when deleting " + resourceType + "/" + id + " from " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
