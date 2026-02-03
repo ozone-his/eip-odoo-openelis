@@ -23,8 +23,6 @@ public class TimestampStore {
 
     private File file;
 
-    private LocalDateTime timestamp;
-
     private Properties props;
 
     public LocalDateTime getTimestamp(Class<? extends DomainResource> resourceType) {

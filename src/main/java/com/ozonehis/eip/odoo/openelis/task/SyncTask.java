@@ -8,6 +8,7 @@
 package com.ozonehis.eip.odoo.openelis.task;
 
 import com.ozonehis.eip.odoo.openelis.Constants;
+import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -50,7 +51,7 @@ public class SyncTask {
     }
 
     public void sync(Class<? extends DomainResource> resourceType) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime timestamp = LocalDateTimeUtils.getCurrentTime();
         //TODO Should we rollback by a few seconds to close any gaps in case there were uncommitted changes
         //during the last poll?
         LocalDateTime since = timestampStore.getTimestamp(resourceType);
@@ -74,7 +75,7 @@ public class SyncTask {
             }
         });
 
-        timestampStore.update(now, resourceType);
+        timestampStore.update(timestamp, resourceType);
         SyncUtils.clearLastUpdatedTimestamps();
     }
 
