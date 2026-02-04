@@ -1,0 +1,35 @@
+/*
+ * Copyright © 2021, Ozone HIS <info@ozone-his.com>
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+package com.ozonehis.eip.odoo.openelis;
+
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class EipFileUtils {
+
+    /**
+     * @throws IOException
+     * @see FileUtils#openInputStream(File)
+     */
+    public static FileInputStream openInputStream(File file) throws IOException {
+        return FileUtils.openInputStream(file);
+    }
+
+    /**
+     * @throws IOException
+     * @see FileUtils#openOutputStream(File)
+     */
+    public static FileOutputStream openOutputStream(File file) throws IOException {
+        return FileUtils.openOutputStream(file);
+    }
+
+}

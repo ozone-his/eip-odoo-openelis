@@ -5,6 +5,7 @@ import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,4 +114,15 @@ public class SyncTaskTest {
         mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
     }
 
+    @Test
+    public void execute_callsSyncForPatientsAndServiceRequests() {
+        task = Mockito.spy(task);
+        Mockito.doNothing().when(task).sync(Patient.class);
+        Mockito.doNothing().when(task).sync(ServiceRequest.class);
+
+        task.execute();
+
+        verify(task).sync(Patient.class);
+        verify(task).sync(ServiceRequest.class);
+    }
 }

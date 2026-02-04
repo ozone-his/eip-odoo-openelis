@@ -2,8 +2,8 @@ package com.ozonehis.eip.odoo.openelis.task;
 
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
+import com.ozonehis.eip.odoo.openelis.EipFileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +49,7 @@ public class TimestampStore {
         }
 
         try {
-            propsTemp.store(FileUtils.openOutputStream(getFile()), null);
+            propsTemp.store(EipFileUtils.openOutputStream(getFile()), null);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save timestamps for " + resource + " resource ", e);
         }
@@ -69,7 +69,7 @@ public class TimestampStore {
                     try {
                         File file = getFile();
                         log.info("Loading timestamps from {}", file);
-                        props.load(FileUtils.openInputStream(file));
+                        props.load(EipFileUtils.openInputStream(file));
                         log.info("Successfully loaded timestamps");
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to load timestamps", e);
