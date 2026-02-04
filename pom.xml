@@ -9,6 +9,20 @@
     <packaging>jar</packaging>
     <name>EIP Odoo OpenELIS</name>
     <description>Provides integration between Odoo and OpenELIS</description>
+
+    <distributionManagement>
+        <repository>
+            <id>mks-nexus-public-releases</id>
+            <name>Mekom Solutions Nexus repo for releases</name>
+            <url>https://nexus.mekomsolutions.net/repository/maven-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>mks-nexus-public-snapshots</id>
+            <name>Mekom Solutions Nexus repo for snapshots</name>
+            <url>https://nexus.mekomsolutions.net/repository/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
