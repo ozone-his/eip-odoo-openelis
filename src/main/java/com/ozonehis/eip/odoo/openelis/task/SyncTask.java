@@ -21,7 +21,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
 import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
@@ -35,6 +39,8 @@ public class SyncTask {
 
     private OdooFhirClient odooClient;
 
+    private Executor executor;
+
     @Value("${" + Constants.PROP_SYNC_OVERLAP + "}")
     private long overlap;
 
@@ -42,6 +48,7 @@ public class SyncTask {
         this.timestampStore = timestampStore;
         this.openElisClient = openElisClient;
         this.odooClient = odooClient;
+        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
     }
 
     @Scheduled(initialDelayString = "${" + PROP_INITIAL_DELAY + "}", fixedDelayString = "${" + PROP_DELAY + "}")
@@ -62,19 +69,21 @@ public class SyncTask {
         }
 
         List<? extends DomainResource> resources = openElisClient.getModifiedResources(resourceType, since);
+        int count = resources.size();
         if (log.isDebugEnabled()) {
-            log.debug("Found {} {} resources to sync: ", resources.size(), resourceType.getSimpleName());
+            log.debug("Found {} {} resources to sync: ", count, resourceType.getSimpleName());
         }
 
-        resources.parallelStream().forEach(r -> {
-            //To minimize duplication, skip
+        List<CompletableFuture<Void>> futures = new ArrayList<>(count);
+        resources.stream().forEach(r -> {
             if (!SyncUtils.skip(r)) {
-                odooClient.update(r);
+                futures.add(CompletableFuture.runAsync(() -> odooClient.update(r), executor));
             } else if (log.isDebugEnabled()) {
                 log.debug("Skipping resource {}/{} lastUpdated at {}", r.fhirType(), r.getIdPart(), SyncUtils.getLastUpdatedTimeStamp(r));
             }
         });
 
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
         timestampStore.update(timestamp, resourceType);
         SyncUtils.clearLastUpdatedTimestamps();
     }
