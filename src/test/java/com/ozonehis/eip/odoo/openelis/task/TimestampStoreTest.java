@@ -25,6 +25,8 @@ import java.util.Properties;
 @ExtendWith(MockitoExtension.class)
 public class TimestampStoreTest {
 
+    protected static String TZ_OFFSET = ZonedDateTime.now().getOffset().toString();
+
     private static MockedStatic<EipFileUtils> mockEipFileUtils;
 
     private static MockedStatic<PropertiesUtils> mockPropertiesUtils;
@@ -64,7 +66,7 @@ public class TimestampStoreTest {
 
     @Test
     public void getTimestamp_shouldReturnTimestampWhenGetTimestampIsCalledAndTimestampFound() {
-        final String ts = "2021-01-01T00:00:00.000-06:00";
+        final String ts = "2021-01-01T00:00:00.000" + TZ_OFFSET;
         LocalDateTime expected = ZonedDateTime.parse(ts).toLocalDateTime();
         Properties props = new Properties();
         props.put(Patient.class.getSimpleName(), ts);
@@ -77,10 +79,10 @@ public class TimestampStoreTest {
 
     @Test
     public void update_shouldUpdateWhenLastSyncTimestampForTheResourceType() throws Exception {
-        LocalDateTime oldPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000-06:00").toLocalDateTime();
-        final String newPatientTsStr = "2021-01-01T01:00:00.000-06:00";
+        LocalDateTime oldPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000" + TZ_OFFSET).toLocalDateTime();
+        final String newPatientTsStr = "2021-01-01T01:00:00.000" + TZ_OFFSET;
         LocalDateTime newPatientTs = ZonedDateTime.parse(newPatientTsStr).toLocalDateTime();
-        LocalDateTime serviceReqTs = ZonedDateTime.parse("2021-01-01T03:00:00.000-06:00").toLocalDateTime();
+        LocalDateTime serviceReqTs = ZonedDateTime.parse("2021-01-01T03:00:00.000" + TZ_OFFSET).toLocalDateTime();
         Properties existingProps = new Properties();
         existingProps.put(Patient.class.getSimpleName(), oldPatientTs);
         existingProps.put(ServiceRequest.class.getSimpleName(), serviceReqTs);
@@ -99,7 +101,7 @@ public class TimestampStoreTest {
 
     @Test
     public void update_shouldFailIfTheTimestampsAreNotSavedToFile() throws Exception {
-        LocalDateTime newPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000-06:00").toLocalDateTime();
+        LocalDateTime newPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000" + TZ_OFFSET).toLocalDateTime();
         Whitebox.setInternalState(store, "props", new Properties());
         Whitebox.setInternalState(store, "file", mockFile);
         Mockito.when(PropertiesUtils.createProperties()).thenReturn(mockProperties);
