@@ -1,17 +1,23 @@
 package com.ozonehis.eip.odoo.openelis.task;
 
 import com.ozonehis.eip.odoo.openelis.EipFileUtils;
+import com.ozonehis.eip.odoo.openelis.PropertiesUtils;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.powermock.reflect.Whitebox;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Properties;
@@ -21,17 +27,30 @@ public class TimestampStoreTest {
 
     private static MockedStatic<EipFileUtils> mockEipFileUtils;
 
+    private static MockedStatic<PropertiesUtils> mockPropertiesUtils;
+
+    @Mock
+    private File mockFile;
+
+    @Mock
+    private Properties mockProperties;
+
+    @Mock
+    private FileOutputStream mockFileOutputStream;
+
     private TimestampStore store;
 
     @BeforeEach
     public void setUp() {
         mockEipFileUtils = Mockito.mockStatic(EipFileUtils.class);
+        mockPropertiesUtils = Mockito.mockStatic(PropertiesUtils.class);
         store = new TimestampStore();
     }
 
     @AfterEach
     public void tearDown() {
         mockEipFileUtils.close();
+        mockPropertiesUtils.close();
     }
 
     @Test
@@ -54,6 +73,42 @@ public class TimestampStoreTest {
         LocalDateTime result = store.getTimestamp(Patient.class);
 
         Assertions.assertEquals(expected, result);
+    }
+
+    @Test
+    public void update_shouldUpdateWhenLastSyncTimestampForTheResourceType() throws Exception {
+        LocalDateTime oldPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000-06:00").toLocalDateTime();
+        final String newPatientTsStr = "2021-01-01T01:00:00.000-06:00";
+        LocalDateTime newPatientTs = ZonedDateTime.parse(newPatientTsStr).toLocalDateTime();
+        LocalDateTime serviceReqTs = ZonedDateTime.parse("2021-01-01T03:00:00.000-06:00").toLocalDateTime();
+        Properties existingProps = new Properties();
+        existingProps.put(Patient.class.getSimpleName(), oldPatientTs);
+        existingProps.put(ServiceRequest.class.getSimpleName(), serviceReqTs);
+        Whitebox.setInternalState(store, "props", existingProps);
+        Whitebox.setInternalState(store, "file", mockFile);
+        Mockito.when(PropertiesUtils.createProperties()).thenReturn(mockProperties);
+        Mockito.when(EipFileUtils.openOutputStream(mockFile)).thenReturn(mockFileOutputStream);
+
+        store.update(newPatientTs, Patient.class);
+
+        Mockito.verify(mockProperties).putAll(existingProps);
+        Mockito.verify(mockProperties).put(Patient.class.getSimpleName(), newPatientTsStr);
+        Mockito.verify(mockProperties).store(mockFileOutputStream, null);
+        Assertions.assertEquals(newPatientTs, store.getTimestamp(Patient.class));
+    }
+
+    @Test
+    public void update_shouldFailIfTheTimestampsAreNotSavedToFile() throws Exception {
+        LocalDateTime newPatientTs = ZonedDateTime.parse("2021-01-01T01:00:00.000-06:00").toLocalDateTime();
+        Whitebox.setInternalState(store, "props", new Properties());
+        Whitebox.setInternalState(store, "file", mockFile);
+        Mockito.when(PropertiesUtils.createProperties()).thenReturn(mockProperties);
+        Mockito.when(EipFileUtils.openOutputStream(mockFile)).thenReturn(mockFileOutputStream);
+        Mockito.doThrow(new IOException()).when(mockProperties).store(mockFileOutputStream, null);
+
+        RuntimeException e = Assertions.assertThrows(RuntimeException.class, () -> store.update(newPatientTs, Patient.class));
+
+        Assertions.assertEquals("Failed to save timestamps for " + Patient.class.getSimpleName() + " resource ", e.getMessage());
     }
 
 }

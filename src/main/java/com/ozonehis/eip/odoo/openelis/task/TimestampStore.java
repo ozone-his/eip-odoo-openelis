@@ -3,6 +3,7 @@ package com.ozonehis.eip.odoo.openelis.task;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.EipFileUtils;
+import com.ozonehis.eip.odoo.openelis.PropertiesUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.DomainResource;
@@ -40,7 +41,7 @@ public class TimestampStore {
 
     public synchronized void update(LocalDateTime timestamp, Class<? extends DomainResource> resourceType) {
         final String resource = resourceType.getSimpleName();
-        Properties propsTemp = new Properties();
+        Properties propsTemp = PropertiesUtils.createProperties();
         propsTemp.putAll(getProps());
         final String newTimestamp = DateUtils.serialize(timestamp);
         propsTemp.put(resourceType.getSimpleName(), newTimestamp);
@@ -64,7 +65,7 @@ public class TimestampStore {
         if (props == null) {
             synchronized (this) {
                 if (props == null) {
-                    props = new Properties();
+                    props = PropertiesUtils.createProperties();
 
                     try {
                         File file = getFile();
