@@ -86,7 +86,7 @@ public class TimestampStore {
         if (file == null) {
             synchronized (this) {
                 if (file == null) {
-                    File fileTemp = new File(filename);
+                    File fileTemp = EipFileUtils.createFile(filename);
                     if (!fileTemp.exists()) {
                         if (!fileTemp.getParentFile().exists()) {
                             log.info("Creating timestamp directory");

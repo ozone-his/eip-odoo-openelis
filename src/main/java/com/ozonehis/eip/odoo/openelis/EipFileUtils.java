@@ -32,4 +32,15 @@ public class EipFileUtils {
         return FileUtils.openOutputStream(file);
     }
 
+    /**
+     * Creates a new file instance for the specified file path.
+     *
+     * @param fileName the name of the file to be created
+     * @return a File object representing the file
+     * @throws IOException
+     */
+    public static File createFile(String fileName) {
+        return new File(fileName);
+    }
+
 }

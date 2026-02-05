@@ -111,4 +111,54 @@ public class TimestampStoreTest {
         Assertions.assertEquals("Failed to save timestamps for " + Patient.class.getSimpleName() + " resource ", e.getMessage());
     }
 
+    @Test
+    public void getFile_shouldUseExistingFileWhenFileAlreadyExists() throws IOException {
+        final String fileName = "test_timestamp.txt";
+        Whitebox.setInternalState(store, "filename", fileName);
+        Mockito.when(mockFile.exists()).thenReturn(true);
+        Mockito.when(EipFileUtils.createFile(fileName)).thenReturn(mockFile);
+
+        File result = store.getFile();
+
+        Assertions.assertEquals(mockFile, result);
+        Mockito.verify(mockFile, Mockito.never()).getParentFile();
+        Mockito.verify(mockFile, Mockito.never()).createNewFile();
+    }
+
+
+    @Test
+    public void getFile_shouldCreateNewFileWhenFileDoesNotExist() throws IOException {
+        final String fileName = "test_timestamp.txt";
+        Whitebox.setInternalState(store, "filename", fileName);
+        File mockDir = Mockito.mock(File.class);
+        Mockito.when(mockFile.getParentFile()).thenReturn(mockDir);
+        Mockito.when(mockDir.exists()).thenReturn(true);
+        Mockito.when(mockFile.createNewFile()).thenReturn(true);
+        Mockito.when(EipFileUtils.createFile(fileName)).thenReturn(mockFile);
+
+        File result = store.getFile();
+
+        Assertions.assertEquals(mockFile, result);
+        Mockito.verify(mockFile).createNewFile();
+        Mockito.verify(mockDir, Mockito.never()).mkdirs();
+    }
+
+
+    @Test
+    public void getFile_shouldCreateParentDirectoriesIfTheyDoNotExist() throws IOException {
+        final String fileName = "test_timestamp.txt";
+        Whitebox.setInternalState(store, "filename", fileName);
+        File mockDir = Mockito.mock(File.class);
+        Mockito.when(mockFile.getParentFile()).thenReturn(mockDir);
+        Mockito.when(mockDir.mkdirs()).thenReturn(true);
+        Mockito.when(mockFile.createNewFile()).thenReturn(true);
+        Mockito.when(EipFileUtils.createFile(fileName)).thenReturn(mockFile);
+
+        File result = store.getFile();
+
+        Assertions.assertEquals(mockFile, result);
+        Mockito.verify(mockFile).createNewFile();
+        Mockito.verify(mockDir).mkdirs();
+    }
+
 }
