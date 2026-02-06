@@ -8,6 +8,7 @@
 package com.ozonehis.eip.odoo.openelis.fhir.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.TestConfig;
@@ -81,7 +82,7 @@ public class FhirControllerTest {
         final Map<?, ?> data = Map.of("meta", Map.of("lastUpdated", DateUtils.serialize(lastUpdated)));
         final String body = MAPPER.writeValueAsString(data);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/fhir/" + resType + "/" + id);
-        builder.contentType(MediaType.APPLICATION_JSON_VALUE);
+        builder.contentType(Constants.MEDIA_TYPE);
         builder.content(body);
         Mockito.when(mockOdooClient.update(resType, id, body)).thenReturn(HttpStatus.OK.value());
 

@@ -71,7 +71,7 @@ public class SyncTask {
         List<? extends DomainResource> resources = openElisClient.getModifiedResources(resourceType, since);
         int count = resources.size();
         if (log.isDebugEnabled()) {
-            log.debug("Found {} {} resources to sync: ", count, resourceType.getSimpleName());
+            log.debug("Found {} {} resources to sync", count, resourceType.getSimpleName());
         }
 
         List<CompletableFuture<Void>> futures = new ArrayList<>(count);

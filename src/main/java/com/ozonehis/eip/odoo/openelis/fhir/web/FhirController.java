@@ -1,11 +1,11 @@
 package com.ozonehis.eip.odoo.openelis.fhir.web;
 
 import com.jayway.jsonpath.JsonPath;
+import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +35,7 @@ public class FhirController {
      * @param body         The incoming FHIR resource payload.
      * @return ResponseEntity object
      */
-    @PutMapping(value = "{resourceType}/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "{resourceType}/{id}", consumes = Constants.MEDIA_TYPE)
     public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
         int status = 200;
         try {
