@@ -5,6 +5,7 @@ import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +35,7 @@ public class FhirController {
      * @param body         The incoming FHIR resource payload.
      * @return ResponseEntity object
      */
-    @PutMapping("{resourceType}/{id}")
+    @PutMapping(value = "{resourceType}/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
         int status = 200;
         try {
@@ -57,7 +58,7 @@ public class FhirController {
      * @return ResponseEntity object
      */
     @DeleteMapping("{resourceType}/{id}")
-    public ResponseEntity delete(@PathVariable String resourceType, @PathVariable String id) {
+    public ResponseEntity delete(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id) {
         try {
             odooFhirClient.delete(resourceType, id);
             SyncUtils.saveLastUpdated(resourceType, id, null);

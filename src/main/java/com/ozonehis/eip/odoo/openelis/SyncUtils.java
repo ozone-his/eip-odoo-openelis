@@ -74,6 +74,17 @@ public class SyncUtils {
     }
 
     /**
+     * Retrieves the last updated timestamp for a given resource type and id.
+     *
+     * @param resourceType the type of the resource
+     * @param id           the identifier of the resource
+     * @return the last updated timestamp of the resource, or null if no entry exists
+     */
+    public static LocalDateTime getLastUpdated(String resourceType, String id) {
+        return ID_LAST_UPDATED_MAP.get(resourceType + id);
+    }
+
+    /**
      * Determines whether a given resource should be skipped based on the specified last updated timestamp.
      *
      * @param resourceType the type of the resource
@@ -88,17 +99,6 @@ public class SyncUtils {
         }
 
         return false;
-    }
-
-    /**
-     * Retrieves the last updated timestamp for a given resource type and id.
-     *
-     * @param resourceType the type of the resource
-     * @param id           the identifier of the resource
-     * @return the last updated timestamp of the resource, or null if no entry exists
-     */
-    private static LocalDateTime getLastUpdated(String resourceType, String id) {
-        return ID_LAST_UPDATED_MAP.get(resourceType + id);
     }
 
 }
