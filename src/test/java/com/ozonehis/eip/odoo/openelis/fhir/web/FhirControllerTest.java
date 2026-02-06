@@ -28,7 +28,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -103,7 +102,7 @@ public class FhirControllerTest {
         final Map<?, ?> data = Map.of("meta", Map.of("lastUpdated", DateUtils.serialize(LocalDateTime.now())));
         final String body = MAPPER.writeValueAsString(data);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/fhir/" + resType + "/" + id);
-        builder.contentType(MediaType.APPLICATION_JSON_VALUE);
+        builder.contentType(Constants.MEDIA_TYPE);
         builder.content(body);
         Mockito.when(mockOdooClient.update(resType, id, body)).thenThrow(new RuntimeException("Test"));
         LocalDateTime lastUpdated = LocalDateTime.now();
