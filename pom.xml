@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2024, Ozone HIS <info@ozone-his.com>
+
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
@@ -8,6 +17,19 @@
   <packaging>jar</packaging>
   <name>EIP Odoo OpenELIS</name>
   <description>Provides integration between Odoo and OpenELIS</description>
+
+  <inceptionYear>2024</inceptionYear>
+
+  <organization>
+    <name>Ozone HIS</name>
+    <url>https://www.ozone-his.com</url>
+  </organization>
+  <developers>
+    <developer>
+      <name>Mekom Solutions</name>
+      <url>https://www.mekomsolutions.com</url>
+    </developer>
+  </developers>
 
   <distributionManagement>
     <repository>
@@ -168,6 +190,38 @@
             <id>format</id>
             <goals>
               <goal>apply</goal>
+              <goal>check</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>4.3</version>
+        <configuration>
+          <properties>
+            <owner>${project.organization.name}</owner>
+            <email>info@ozone-his.com</email>
+            <year>${project.inceptionYear}</year>
+          </properties>
+          <licenseSets>
+            <licenseSet>
+              <header>com/mycila/maven/plugin/license/templates/MPL-2.txt</header>
+              <excludes>
+                <exclude>**/README</exclude>
+                <exclude>**/target/**</exclude>
+                <exclude>.java-version</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals>
+              <goal>format</goal>
               <goal>check</goal>
             </goals>
             <phase>install</phase>
