@@ -1,13 +1,12 @@
 package com.ozonehis.eip.odoo.openelis;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.Test;
 
 public class DateUtilsTest {
 
@@ -22,5 +21,4 @@ public class DateUtilsTest {
         LocalDateTime expected = LocalDateTime.of(2019, 6, 30, 18, 25, 43);
         assertEquals(expected, DateUtils.toLocalDateTime(date));
     }
-
 }

@@ -16,8 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class TaskConfig {
 
     @Bean
-    public SyncTask SyncTask(TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
+    public SyncTask SyncTask(
+            TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
         return new SyncTask(timestampStore, openElisClient, odooClient);
     }
-
 }

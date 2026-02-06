@@ -4,16 +4,15 @@ import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.EipFileUtils;
 import com.ozonehis.eip.odoo.openelis.PropertiesUtils;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Properties;
 
 @Slf4j
 @Component
@@ -117,5 +116,4 @@ public class TimestampStore {
 
         return file;
     }
-
 }

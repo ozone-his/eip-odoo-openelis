@@ -7,12 +7,17 @@
  */
 package com.ozonehis.eip.odoo.openelis.fhir.web;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.TestConfig;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,16 +41,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.Map;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest(classes = TestConfig.class)
 @EnableAutoConfiguration
 @ComponentScan
-@TestExecutionListeners({DirtiesContextBeforeModesTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class})
+@TestExecutionListeners({
+    DirtiesContextBeforeModesTestExecutionListener.class,
+    DependencyInjectionTestExecutionListener.class,
+    DirtiesContextTestExecutionListener.class
+})
 @TestPropertySource(properties = "EIP_ODOO_FHIR_URL=")
 @TestPropertySource(properties = "EIP_ODOO_FHIR_USERNAME=")
 @TestPropertySource(properties = "EIP_ODOO_FHIR_PASSWORD=")
@@ -78,7 +81,8 @@ public class FhirControllerTest {
     public void createOrUpdate_shouldCreateOrUpdateTheResourceInOdoo() throws Exception {
         final String id = "12345";
         final String resType = "Patient";
-        final LocalDateTime lastUpdated = ZonedDateTime.parse("2025-02-05T19:45:00.000" + TZ_OFFSET).toLocalDateTime();
+        final LocalDateTime lastUpdated =
+                ZonedDateTime.parse("2025-02-05T19:45:00.000" + TZ_OFFSET).toLocalDateTime();
         final Map<?, ?> data = Map.of("meta", Map.of("lastUpdated", DateUtils.serialize(lastUpdated)));
         final String body = MAPPER.writeValueAsString(data);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/fhir/" + resType + "/" + id);
@@ -142,5 +146,4 @@ public class FhirControllerTest {
         Mockito.verify(mockOdooClient).delete(resType, id);
         Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
     }
-
 }

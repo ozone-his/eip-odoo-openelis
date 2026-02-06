@@ -1,26 +1,25 @@
 package com.ozonehis.eip.odoo.openelis.fhir;
 
+import static org.hl7.fhir.instance.model.api.IAnyResource.SP_RES_LAST_UPDATED;
+import static org.hl7.fhir.r4.model.Subscription.CRITERIA;
+import static org.hl7.fhir.r4.model.Subscription.SP_PAYLOAD;
+import static org.hl7.fhir.r4.model.Subscription.SP_TYPE;
+import static org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType.RESTHOOK;
+
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.StringClientParam;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Subscription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.hl7.fhir.instance.model.api.IAnyResource.SP_RES_LAST_UPDATED;
-import static org.hl7.fhir.r4.model.Subscription.CRITERIA;
-import static org.hl7.fhir.r4.model.Subscription.SP_PAYLOAD;
-import static org.hl7.fhir.r4.model.Subscription.SP_TYPE;
-import static org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType.RESTHOOK;
 
 @Component
 @Slf4j
@@ -44,10 +43,13 @@ public class OpenElisFhirClient extends BaseFhirClient {
         }
 
         try {
-            Bundle bundle = (Bundle) getFhirClient().search().forResource(Subscription.class)
+            Bundle bundle = (Bundle) getFhirClient()
+                    .search()
+                    .forResource(Subscription.class)
                     .where(CRITERIA.matchesExactly().value(Constants.SUBSCRIPTION_CRITERIA))
                     .and(new StringClientParam(SP_TYPE).matchesExactly().value(RESTHOOK.toCode()))
-                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(Constants.MEDIA_TYPE)).execute();
+                    .and(new StringClientParam(SP_PAYLOAD).matchesExactly().value(Constants.MEDIA_TYPE))
+                    .execute();
             if (bundle.getEntry().size() == 1) {
                 if (log.isDebugEnabled()) {
                     log.debug("Found subscription in {}", getSourceName());
@@ -58,7 +60,7 @@ public class OpenElisFhirClient extends BaseFhirClient {
                 throw new RuntimeException("Found multiple subscriptions of type in " + getSourceName());
             }
         } catch (ResourceNotFoundException e) {
-            //Ignore
+            // Ignore
         }
 
         if (log.isDebugEnabled()) {
@@ -82,9 +84,12 @@ public class OpenElisFhirClient extends BaseFhirClient {
         }
 
         final String sinceStr = DateUtils.serialize(since);
-        Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
-                .where(new StringClientParam(SP_RES_LAST_UPDATED).matches().value("ge" + sinceStr)).execute();
-        return (List) bundle.getEntry().stream().parallel().map(e -> e.getResource()).collect(Collectors.toList());
+        Bundle bundle = (Bundle) getFhirClient()
+                .search()
+                .forResource(resourceType)
+                .where(new StringClientParam(SP_RES_LAST_UPDATED).matches().value("ge" + sinceStr))
+                .execute();
+        return (List)
+                bundle.getEntry().stream().parallel().map(e -> e.getResource()).collect(Collectors.toList());
     }
-
 }

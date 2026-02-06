@@ -1,15 +1,14 @@
 package com.ozonehis.eip.odoo.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ca.uhn.fhir.context.FhirContext;
+import java.time.LocalDateTime;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SyncUtils class, specifically for ensuring proper handling of the
@@ -85,8 +84,10 @@ public class SyncUtilsTest {
     public void getLastUpdatedTimestamp_shouldReturnLastUpdatedValue() {
         final String lastUpdatedStr = "2022-01-01T10:00:00.000";
         LocalDateTime expected = LocalDateTime.parse(lastUpdatedStr);
-        String jsonResource = "{\"resourceType\":\"Patient\", \"id\":\"test\", \"meta\":{\"lastUpdated\":\"" + lastUpdatedStr + "\"}}";
-        DomainResource resource = (DomainResource) FhirContext.forR4().newJsonParser().parseResource(jsonResource);
+        String jsonResource = "{\"resourceType\":\"Patient\", \"id\":\"test\", \"meta\":{\"lastUpdated\":\""
+                + lastUpdatedStr + "\"}}";
+        DomainResource resource =
+                (DomainResource) FhirContext.forR4().newJsonParser().parseResource(jsonResource);
         assertEquals(expected, SyncUtils.getLastUpdatedTimeStamp(resource));
     }
 }

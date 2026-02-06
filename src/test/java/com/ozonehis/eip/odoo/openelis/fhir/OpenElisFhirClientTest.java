@@ -1,5 +1,10 @@
 package com.ozonehis.eip.odoo.openelis.fhir;
 
+import static org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType.RESTHOOK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.ICriterionInternal;
@@ -8,6 +13,9 @@ import ca.uhn.fhir.rest.gclient.IUntypedQuery;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Subscription;
@@ -19,15 +27,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType.RESTHOOK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class OpenElisFhirClientTest {
@@ -59,7 +58,9 @@ public class OpenElisFhirClientTest {
         ArgumentCaptor<ICriterion> criteriaArgCaptor = ArgumentCaptor.forClass(ICriterion.class);
         ArgumentCaptor<ICriterion> typeArgCaptor = ArgumentCaptor.forClass(ICriterion.class);
         Mockito.when(mockQuery.where(criteriaArgCaptor.capture())).thenReturn(mockQuery);
-        Mockito.when(mockQuery.and(typeArgCaptor.capture())).thenReturn(mockQuery).thenReturn(mockQuery);
+        Mockito.when(mockQuery.and(typeArgCaptor.capture()))
+                .thenReturn(mockQuery)
+                .thenReturn(mockQuery);
         Mockito.when(mockQuery.execute()).thenReturn(bundle);
 
         Subscription resource = client.getSubscription();
@@ -68,10 +69,12 @@ public class OpenElisFhirClientTest {
         ICriterionInternal criteriaCriterion = (ICriterionInternal) criteriaArgCaptor.getValue();
         assertEquals("criteria:exact", criteriaCriterion.getParameterName());
         assertEquals("[Patient\\,ServiceRequest]", criteriaCriterion.getParameterValue(null));
-        ICriterionInternal typeCriterion = (ICriterionInternal) typeArgCaptor.getAllValues().get(0);
+        ICriterionInternal typeCriterion =
+                (ICriterionInternal) typeArgCaptor.getAllValues().get(0);
         assertEquals("type:exact", typeCriterion.getParameterName());
         assertEquals(RESTHOOK.toCode(), typeCriterion.getParameterValue(null));
-        ICriterionInternal payloadCriterion = (ICriterionInternal) typeArgCaptor.getAllValues().get(1);
+        ICriterionInternal payloadCriterion =
+                (ICriterionInternal) typeArgCaptor.getAllValues().get(1);
         assertEquals("payload:exact", payloadCriterion.getParameterName());
         assertEquals(Constants.MEDIA_TYPE, payloadCriterion.getParameterValue(null));
     }
@@ -149,5 +152,4 @@ public class OpenElisFhirClientTest {
 
         assertTrue(resultingResources.isEmpty());
     }
-
 }

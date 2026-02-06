@@ -1,5 +1,7 @@
 package com.ozonehis.eip.odoo.openelis.fhir;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.ICreate;
@@ -24,8 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class BaseFhirClientTest {
@@ -309,5 +309,4 @@ public class BaseFhirClientTest {
         final String msg = "Unexpected status code " + status + " when deleting Patient/" + id + " from Odoo";
         Assertions.assertEquals(msg, e.getMessage());
     }
-
 }

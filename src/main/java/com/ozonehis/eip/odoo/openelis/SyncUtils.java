@@ -1,13 +1,12 @@
 package com.ozonehis.eip.odoo.openelis;
 
 import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.r4.model.DomainResource;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.DomainResource;
 
 @Slf4j
 public class SyncUtils {
@@ -49,7 +48,7 @@ public class SyncUtils {
             return skip(resourceType, id, DateUtils.deserialize(JsonPath.read(payload, "meta.lastUpdated")));
         }
 
-        //This is a deleted resource
+        // This is a deleted resource
         return ID_LAST_UPDATED_MAP.containsKey(resourceType + id) && getLastUpdated(resourceType, id) == null;
     }
 
@@ -100,5 +99,4 @@ public class SyncUtils {
 
         return false;
     }
-
 }

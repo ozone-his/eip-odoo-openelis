@@ -1,5 +1,10 @@
 package com.ozonehis.eip.odoo.openelis;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
@@ -11,11 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.powermock.reflect.Whitebox;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class StartListenerTest {
@@ -77,5 +77,4 @@ public class StartListenerTest {
         verify(mockClient, never()).create(any(Subscription.class));
         verify(mockClient, never()).update(any(Subscription.class));
     }
-
 }

@@ -5,6 +5,7 @@ import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
+import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/fhir")
@@ -36,7 +35,10 @@ public class FhirController {
      * @return ResponseEntity object
      */
     @PutMapping(value = "{resourceType}/{id}", consumes = Constants.MEDIA_TYPE)
-    public ResponseEntity createOrUpdate(@PathVariable("resourceType") String resourceType, @PathVariable("id") String id, @RequestBody String body) {
+    public ResponseEntity createOrUpdate(
+            @PathVariable("resourceType") String resourceType,
+            @PathVariable("id") String id,
+            @RequestBody String body) {
         int status = 200;
         try {
             status = odooFhirClient.update(resourceType, id, body);
@@ -69,5 +71,4 @@ public class FhirController {
 
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -12,5 +12,4 @@ public class PropertiesUtils {
     public static Properties createProperties() {
         return new Properties();
     }
-
 }

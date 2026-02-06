@@ -1,9 +1,16 @@
 package com.ozonehis.eip.odoo.openelis.task;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -15,14 +22,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.powermock.reflect.Whitebox;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class SyncTaskTest {
@@ -67,7 +66,8 @@ public class SyncTaskTest {
         when(LocalDateTimeUtils.getCurrentTime()).thenReturn(now);
         when(mockTimestampStore.getTimestamp(Patient.class)).thenReturn(lastSyncTs);
         LocalDateTime effectiveLastSyncTs = lastSyncTs.minus(OVERLAP, MILLIS);
-        when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs)).thenReturn(List.of(p1, p2));
+        when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs))
+                .thenReturn(List.of(p1, p2));
 
         task.sync(Patient.class);
 
@@ -86,7 +86,8 @@ public class SyncTaskTest {
         when(LocalDateTimeUtils.getCurrentTime()).thenReturn(now);
         when(mockTimestampStore.getTimestamp(Patient.class)).thenReturn(lastSyncTs);
         LocalDateTime effectiveLastSyncTs = lastSyncTs.minus(OVERLAP, MILLIS);
-        when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs)).thenReturn(List.of(p1, p2));
+        when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs))
+                .thenReturn(List.of(p1, p2));
         when(SyncUtils.skip(p1)).thenReturn(true);
 
         task.sync(Patient.class);

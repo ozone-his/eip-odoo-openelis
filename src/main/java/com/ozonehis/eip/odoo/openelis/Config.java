@@ -14,5 +14,4 @@ public class Config {
     public StartListener startListener(OpenElisFhirClient openElisClient) {
         return new StartListener(openElisClient);
     }
-
 }

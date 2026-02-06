@@ -7,18 +7,14 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
+import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
+import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
+
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
-import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.ServiceRequest;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -26,9 +22,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import static com.ozonehis.eip.odoo.openelis.Constants.PROP_DELAY;
-import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
+import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.ServiceRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 public class SyncTask {
@@ -59,8 +58,8 @@ public class SyncTask {
 
     public void sync(Class<? extends DomainResource> resourceType) {
         LocalDateTime timestamp = LocalDateTimeUtils.getCurrentTime();
-        //TODO Should we rollback by a few seconds to close any gaps in case there were uncommitted changes
-        //during the last poll?
+        // TODO Should we rollback by a few seconds to close any gaps in case there were uncommitted changes
+        // during the last poll?
         LocalDateTime since = timestampStore.getTimestamp(resourceType);
         if (since == null) {
             since = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
@@ -79,7 +78,11 @@ public class SyncTask {
             if (!SyncUtils.skip(r)) {
                 futures.add(CompletableFuture.runAsync(() -> odooClient.update(r), executor));
             } else if (log.isDebugEnabled()) {
-                log.debug("Skipping resource {}/{} lastUpdated at {}", r.fhirType(), r.getIdPart(), SyncUtils.getLastUpdatedTimeStamp(r));
+                log.debug(
+                        "Skipping resource {}/{} lastUpdated at {}",
+                        r.fhirType(),
+                        r.getIdPart(),
+                        SyncUtils.getLastUpdatedTimeStamp(r));
             }
         });
 
@@ -87,5 +90,4 @@ public class SyncTask {
         timestampStore.update(timestamp, resourceType);
         SyncUtils.clearLastUpdatedTimestamps();
     }
-
 }

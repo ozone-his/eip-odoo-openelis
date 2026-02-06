@@ -7,13 +7,13 @@
  */
 package com.ozonehis.eip.odoo.openelis;
 
+import static java.time.ZoneId.systemDefault;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-
-import static java.time.ZoneId.systemDefault;
 
 public class DateUtils {
 
@@ -36,7 +36,9 @@ public class DateUtils {
      * @return the deserialized {@link LocalDateTime} instance.
      */
     public static LocalDateTime deserialize(String date) {
-        return ZonedDateTime.parse(date, DATE_FORMATTER).withZoneSameInstant(systemDefault()).toLocalDateTime();
+        return ZonedDateTime.parse(date, DATE_FORMATTER)
+                .withZoneSameInstant(systemDefault())
+                .toLocalDateTime();
     }
 
     /**
@@ -52,5 +54,4 @@ public class DateUtils {
 
         return null;
     }
-
 }

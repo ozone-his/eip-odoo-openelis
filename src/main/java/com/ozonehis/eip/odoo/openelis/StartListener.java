@@ -54,5 +54,4 @@ public class StartListener {
             openElisClient.update(sub);
         }
     }
-
 }

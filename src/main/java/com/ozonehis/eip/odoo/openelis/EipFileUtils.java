@@ -7,12 +7,11 @@
  */
 package com.ozonehis.eip.odoo.openelis;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.apache.commons.io.FileUtils;
 
 public class EipFileUtils {
 
@@ -42,5 +41,4 @@ public class EipFileUtils {
     public static File createFile(String fileName) {
         return new File(fileName);
     }
-
 }

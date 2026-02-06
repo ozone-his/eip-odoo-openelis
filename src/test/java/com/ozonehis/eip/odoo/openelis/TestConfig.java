@@ -17,5 +17,4 @@ public class TestConfig {
     public OdooFhirClient odooFhirClient() {
         return Mockito.mock(OdooFhirClient.class);
     }
-
 }

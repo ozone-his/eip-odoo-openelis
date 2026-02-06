@@ -70,8 +70,11 @@ public abstract class BaseFhirClient {
         }
 
         try {
-            Bundle bundle = (Bundle) getFhirClient().search().forResource(resourceType)
-                    .where(new TokenClientParam("identifier").exactly().identifier(externalId)).execute();
+            Bundle bundle = (Bundle) getFhirClient()
+                    .search()
+                    .forResource(resourceType)
+                    .where(new TokenClientParam("identifier").exactly().identifier(externalId))
+                    .execute();
             if (bundle.getEntry().size() == 1) {
                 if (log.isDebugEnabled()) {
                     log.debug("Found {} in {} with identifier: {}", resource, sourceName, externalId);
@@ -83,7 +86,7 @@ public abstract class BaseFhirClient {
                         + " with external identifier " + externalId);
             }
         } catch (ResourceNotFoundException e) {
-            //Ignore
+            // Ignore
         }
 
         if (log.isDebugEnabled()) {
@@ -111,7 +114,8 @@ public abstract class BaseFhirClient {
         }
 
         if (!outcome.getCreated()) {
-            throw new RuntimeException("Unexpected status code " + outcome.getResponseStatusCode() + " when creating " + resource.fhirType() + " in " + sourceName);
+            throw new RuntimeException("Unexpected status code " + outcome.getResponseStatusCode() + " when creating "
+                    + resource.fhirType() + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -138,14 +142,14 @@ public abstract class BaseFhirClient {
 
         int code = outcome.getResponseStatusCode();
         if (code != 200) {
-            throw new RuntimeException("Unexpected status code " + code + " when updating " + resource.fhirType() + " in " + sourceName);
+            throw new RuntimeException(
+                    "Unexpected status code " + code + " when updating " + resource.fhirType() + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
             log.debug("Successfully updated {} in {}", resource.fhirType(), sourceName);
         }
     }
-
 
     /**
      * Updates a resource of the specified type with the given ID in the fhir server.
@@ -169,7 +173,8 @@ public abstract class BaseFhirClient {
 
         int code = outcome.getResponseStatusCode();
         if (code != 200) {
-            throw new RuntimeException("Unexpected status code " + code + " when updating " + resourceType + "/" + id + " in " + sourceName);
+            throw new RuntimeException("Unexpected status code " + code + " when updating " + resourceType + "/" + id
+                    + " in " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -178,7 +183,6 @@ public abstract class BaseFhirClient {
 
         return outcome.getResponseStatusCode();
     }
-
 
     /**
      * Deletes a resource of the specified type with the given ID from the fhir server.
@@ -200,7 +204,8 @@ public abstract class BaseFhirClient {
 
         int code = outcome.getResponseStatusCode();
         if (code != 200) {
-            throw new RuntimeException("Unexpected status code " + code + " when deleting " + resourceType + "/" + id + " from " + sourceName);
+            throw new RuntimeException("Unexpected status code " + code + " when deleting " + resourceType + "/" + id
+                    + " from " + sourceName);
         }
 
         if (log.isDebugEnabled()) {
@@ -231,5 +236,4 @@ public abstract class BaseFhirClient {
      * @return IGenericClient
      */
     protected abstract IGenericClient createFhirClient();
-
 }

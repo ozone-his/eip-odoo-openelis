@@ -37,5 +37,4 @@ public class OdooFhirClient extends BaseFhirClient {
         fhirClient.registerInterceptor(new BasicAuthInterceptor(username, new String(password)));
         return fhirClient;
     }
-
 }
