@@ -24,4 +24,6 @@ public class Constants {
     public static final String PROP_DELAY = "eip.sync.task.delay";
 
     public static final String PROP_SYNC_OVERLAP = "eip.sync.task.ts.overlap";
+
+    public static final String DEFAULT_SYNC_TS_FILE = "sync_timestamps.txt";
 }

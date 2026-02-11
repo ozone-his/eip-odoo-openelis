@@ -72,7 +72,6 @@ public class TimestampStore {
             synchronized (this) {
                 if (props == null) {
                     props = PropertiesUtils.createProperties();
-
                     try {
                         File file = getFile();
                         log.info("Loading timestamps from {}", file);
@@ -93,6 +92,14 @@ public class TimestampStore {
             synchronized (this) {
                 if (file == null) {
                     File fileTemp = EipFileUtils.createFile(filename);
+                    if (fileTemp.isDirectory()) {
+                        log.info(
+                                "The specified sync timestamp file is a directory, defaulting to file named {} "
+                                        + "in the directory",
+                                Constants.DEFAULT_SYNC_TS_FILE);
+                        fileTemp = EipFileUtils.get(fileTemp.getAbsolutePath(), Constants.DEFAULT_SYNC_TS_FILE);
+                    }
+
                     if (!fileTemp.exists()) {
                         if (!fileTemp.getParentFile().exists()) {
                             log.info("Creating timestamp directory");

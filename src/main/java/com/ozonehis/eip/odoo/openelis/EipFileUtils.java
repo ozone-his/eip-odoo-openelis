@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import org.apache.commons.io.FileUtils;
 
 public class EipFileUtils {
@@ -40,5 +41,12 @@ public class EipFileUtils {
      */
     public static File createFile(String fileName) {
         return new File(fileName);
+    }
+
+    /**
+     * @see Paths#get(String, String...)
+     */
+    public static File get(String first, String... more) {
+        return Paths.get(first, more).toFile();
     }
 }

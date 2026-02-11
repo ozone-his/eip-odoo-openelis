@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
+import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.EipFileUtils;
 import com.ozonehis.eip.odoo.openelis.PropertiesUtils;
 import java.io.File;
@@ -170,5 +171,23 @@ public class TimestampStoreTest {
         Assertions.assertEquals(mockFile, result);
         Mockito.verify(mockFile).createNewFile();
         Mockito.verify(mockDir).mkdirs();
+    }
+
+    @Test
+    public void getFile_shouldUseDefaultFileNameIfConfiguredPathIsADirectory() throws IOException {
+        final String fileName = "/tmp/eip_odoo_openelis";
+        Whitebox.setInternalState(store, "filename", fileName);
+        Mockito.when(mockFile.exists()).thenReturn(true);
+        File mockDir = Mockito.mock(File.class);
+        Mockito.when(EipFileUtils.createFile(fileName)).thenReturn(mockDir);
+        Mockito.when(mockDir.isDirectory()).thenReturn(true);
+        Mockito.when(mockDir.getAbsolutePath()).thenReturn(fileName);
+        Mockito.when(EipFileUtils.get(fileName, Constants.DEFAULT_SYNC_TS_FILE)).thenReturn(mockFile);
+
+        File result = store.getFile();
+
+        Assertions.assertEquals(mockFile, result);
+        Mockito.verify(mockFile, Mockito.never()).getParentFile();
+        Mockito.verify(mockFile, Mockito.never()).createNewFile();
     }
 }
