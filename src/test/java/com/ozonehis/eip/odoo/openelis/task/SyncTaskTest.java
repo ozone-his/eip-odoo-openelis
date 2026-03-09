@@ -149,10 +149,12 @@ public class SyncTaskTest {
         LocalDateTime effectiveLastSyncTs = lastSyncTs.minus(OVERLAP, MILLIS);
         when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs))
                 .thenReturn(List.of(p1, p2, p3));
-        
+
         // Make p2 fail while p1 and p3 succeed
         Mockito.doNothing().when(mockOdooClient).update(p1);
-        Mockito.doThrow(new RuntimeException("Failed to sync patient-2")).when(mockOdooClient).update(p2);
+        Mockito.doThrow(new RuntimeException("Failed to sync patient-2"))
+                .when(mockOdooClient)
+                .update(p2);
         Mockito.doNothing().when(mockOdooClient).update(p3);
 
         // This should not throw an exception
