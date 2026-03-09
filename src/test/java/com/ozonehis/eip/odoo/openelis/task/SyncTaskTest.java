@@ -133,4 +133,37 @@ public class SyncTaskTest {
         verify(task).sync(Patient.class);
         verify(task).sync(ServiceRequest.class);
     }
+
+    @Test
+    public void sync_shouldContinueProcessingResourcesWhenOneFails() {
+        LocalDateTime now = LocalDateTime.now();
+        Patient p1 = new Patient();
+        p1.setId("patient-1");
+        Patient p2 = new Patient();
+        p2.setId("patient-2");
+        Patient p3 = new Patient();
+        p3.setId("patient-3");
+        LocalDateTime lastSyncTs = now.minusMinutes(5);
+        when(LocalDateTimeUtils.getCurrentTime()).thenReturn(now);
+        when(mockTimestampStore.getTimestamp(Patient.class)).thenReturn(lastSyncTs);
+        LocalDateTime effectiveLastSyncTs = lastSyncTs.minus(OVERLAP, MILLIS);
+        when(mockOpenElisClient.getModifiedResources(Patient.class, effectiveLastSyncTs))
+                .thenReturn(List.of(p1, p2, p3));
+        
+        // Make p2 fail while p1 and p3 succeed
+        Mockito.doNothing().when(mockOdooClient).update(p1);
+        Mockito.doThrow(new RuntimeException("Failed to sync patient-2")).when(mockOdooClient).update(p2);
+        Mockito.doNothing().when(mockOdooClient).update(p3);
+
+        // This should not throw an exception
+        task.sync(Patient.class);
+
+        // Verify all three were attempted, even though p2 failed
+        verify(mockOdooClient).update(p1);
+        verify(mockOdooClient).update(p2);
+        verify(mockOdooClient).update(p3);
+        // Verify the timestamp was still updated despite the failure
+        verify(mockTimestampStore).update(now, Patient.class);
+        mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
+    }
 }

@@ -76,7 +76,20 @@ public class SyncTask {
         List<CompletableFuture<Void>> futures = new ArrayList<>(count);
         resources.stream().forEach(r -> {
             if (!SyncUtils.skip(r)) {
-                futures.add(CompletableFuture.runAsync(() -> odooClient.update(r), executor));
+                futures.add(CompletableFuture.runAsync(
+                        () -> {
+                            try {
+                                odooClient.update(r);
+                            } catch (Exception e) {
+                                log.error(
+                                        "Failed to sync resource {}/{}: {}",
+                                        r.fhirType(),
+                                        r.getIdPart(),
+                                        e.getMessage(),
+                                        e);
+                            }
+                        },
+                        executor));
             } else if (log.isDebugEnabled()) {
                 log.debug(
                         "Skipping resource {}/{} lastUpdated at {}",
