@@ -8,8 +8,11 @@
 package com.ozonehis.eip.odoo.openelis;
 
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
@@ -23,6 +26,12 @@ public class StartListener {
 
     @Value("${" + Constants.PROP_SUB_ENDPOINT + "}")
     private String endpoint;
+
+    @Value("${eip.odoo.fhir.username}")
+    private String odooFhirUsername;
+
+    @Value("${eip.odoo.fhir.password}")
+    private char[] odooFhirPassword;
 
     private OpenElisFhirClient openElisClient;
 
@@ -43,22 +52,57 @@ public class StartListener {
         Subscription sub = openElisClient.getSubscription();
         if (sub == null) {
             SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
-            channel.setType(SubscriptionChannelType.RESTHOOK);
-            channel.setPayload(Constants.MEDIA_TYPE);
-            channel.setEndpoint(endpoint);
+            configureChannel(channel);
             sub = new Subscription();
             sub.setStatus(SubscriptionStatus.REQUESTED);
             sub.setCriteria(Constants.SUBSCRIPTION_CRITERIA);
             sub.setChannel(channel);
             sub.addExtension(Constants.EXT, new BooleanType(true));
             openElisClient.create(sub);
-        } else if (!endpoint.equals(sub.getChannel().getEndpoint())) {
+        } else if (configureChannel(sub.getChannel())) {
             if (log.isDebugEnabled()) {
-                log.debug("Updating subscription endpoint");
+                log.debug("Updating subscription channel");
             }
 
-            sub.getChannel().setEndpoint(endpoint);
             openElisClient.update(sub);
         }
+    }
+
+    private boolean configureChannel(SubscriptionChannelComponent channel) {
+        boolean updated = false;
+
+        if (!channel.hasType() || channel.getType() != SubscriptionChannelType.RESTHOOK) {
+            channel.setType(SubscriptionChannelType.RESTHOOK);
+            updated = true;
+        }
+        if (!Constants.MEDIA_TYPE.equals(channel.getPayload())) {
+            channel.setPayload(Constants.MEDIA_TYPE);
+            updated = true;
+        }
+        if (!endpoint.equals(channel.getEndpoint())) {
+            channel.setEndpoint(endpoint);
+            updated = true;
+        }
+
+        String authHeader = buildAuthorizationHeader();
+        boolean hasCurrentAuthHeader =
+                channel.getHeader().stream().map(StringType::getValue).anyMatch(authHeader::equals);
+        if (!hasCurrentAuthHeader) {
+            channel.getHeader().removeIf(header -> isAuthorizationHeader(header.getValue()));
+            channel.addHeader(authHeader);
+            updated = true;
+        }
+
+        return updated;
+    }
+
+    private String buildAuthorizationHeader() {
+        String credentials = odooFhirUsername + ":" + new String(odooFhirPassword);
+        return "Authorization: Basic "
+                + Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private boolean isAuthorizationHeader(String header) {
+        return header != null && header.regionMatches(true, 0, "Authorization:", 0, "Authorization:".length());
     }
 }
