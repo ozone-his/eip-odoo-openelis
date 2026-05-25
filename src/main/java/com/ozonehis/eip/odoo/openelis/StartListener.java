@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openelis;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.StringType;
@@ -75,18 +76,20 @@ public class StartListener {
             channel.setType(SubscriptionChannelType.RESTHOOK);
             updated = true;
         }
-        if (!Constants.MEDIA_TYPE.equals(channel.getPayload())) {
+        if (!Objects.equals(Constants.MEDIA_TYPE, channel.getPayload())) {
             channel.setPayload(Constants.MEDIA_TYPE);
             updated = true;
         }
-        if (!endpoint.equals(channel.getEndpoint())) {
+        if (!Objects.equals(endpoint, channel.getEndpoint())) {
             channel.setEndpoint(endpoint);
             updated = true;
         }
 
         String authHeader = buildAuthorizationHeader();
-        boolean hasCurrentAuthHeader =
-                channel.getHeader().stream().map(StringType::getValue).anyMatch(authHeader::equals);
+        boolean hasCurrentAuthHeader = channel.getHeader().stream()
+                .filter(Objects::nonNull)
+                .map(StringType::getValue)
+                .anyMatch(authHeader::equals);
         if (!hasCurrentAuthHeader) {
             channel.getHeader().removeIf(header -> isAuthorizationHeader(header.getValue()));
             channel.addHeader(authHeader);
