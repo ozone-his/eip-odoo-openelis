@@ -12,6 +12,7 @@ import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
 
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
+import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -38,15 +39,22 @@ public class SyncTask {
 
     private OdooFhirClient odooClient;
 
+    private ServiceRequestPatientService serviceRequestPatientService;
+
     private Executor executor;
 
     @Value("${" + Constants.PROP_SYNC_OVERLAP + "}")
     private long overlap;
 
-    public SyncTask(TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
+    public SyncTask(
+            TimestampStore timestampStore,
+            OpenElisFhirClient openElisClient,
+            OdooFhirClient odooClient,
+            ServiceRequestPatientService serviceRequestPatientService) {
         this.timestampStore = timestampStore;
         this.openElisClient = openElisClient;
         this.odooClient = odooClient;
+        this.serviceRequestPatientService = serviceRequestPatientService;
         executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
     }
 
@@ -79,7 +87,7 @@ public class SyncTask {
                 futures.add(CompletableFuture.runAsync(
                         () -> {
                             try {
-                                odooClient.update(r);
+                                syncResource(r);
                             } catch (Exception e) {
                                 log.error(
                                         "Failed to sync resource {}/{}: {}",
@@ -102,5 +110,13 @@ public class SyncTask {
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
         timestampStore.update(timestamp, resourceType);
         SyncUtils.clearLastUpdatedTimestamps();
+    }
+
+    private void syncResource(DomainResource resource) {
+        if (resource instanceof ServiceRequest) {
+            serviceRequestPatientService.createSubjectPatientIfMissing((ServiceRequest) resource);
+        }
+
+        odooClient.update(resource);
     }
 }

@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openelis.fhir.web;
 import com.jayway.jsonpath.JsonPath;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
+import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import java.time.LocalDateTime;
@@ -29,8 +30,11 @@ public class FhirController {
 
     private final OdooFhirClient odooFhirClient;
 
-    public FhirController(OdooFhirClient odooFhirClient) {
+    private final ServiceRequestPatientService serviceRequestPatientService;
+
+    public FhirController(OdooFhirClient odooFhirClient, ServiceRequestPatientService serviceRequestPatientService) {
         this.odooFhirClient = odooFhirClient;
+        this.serviceRequestPatientService = serviceRequestPatientService;
     }
 
     /**
@@ -48,6 +52,7 @@ public class FhirController {
             @RequestBody String body) {
         int status = 200;
         try {
+            serviceRequestPatientService.createSubjectPatientIfMissing(resourceType, body);
             status = odooFhirClient.update(resourceType, id, body);
             LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(body, "meta.lastUpdated"));
             SyncUtils.saveLastUpdated(resourceType, id, lastUpdated);

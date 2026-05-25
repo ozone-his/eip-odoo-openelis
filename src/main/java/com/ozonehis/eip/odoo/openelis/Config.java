@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openelis;
 
+import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import com.ozonehis.eip.odoo.openelis.task.TaskConfig;
 import org.springframework.context.annotation.Bean;
@@ -20,5 +21,11 @@ public class Config {
     @Bean
     public StartListener startListener(OpenElisFhirClient openElisClient) {
         return new StartListener(openElisClient);
+    }
+
+    @Bean
+    public ServiceRequestPatientService serviceRequestPatientService(
+            OdooFhirClient odooFhirClient, OpenElisFhirClient openElisFhirClient) {
+        return new ServiceRequestPatientService(odooFhirClient, openElisFhirClient);
     }
 }

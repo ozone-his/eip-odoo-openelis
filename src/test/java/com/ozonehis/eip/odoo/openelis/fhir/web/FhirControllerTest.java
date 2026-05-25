@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
+import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.TestConfig;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
@@ -51,6 +52,7 @@ import org.springframework.web.context.WebApplicationContext;
 @TestPropertySource(properties = "EIP_ODOO_FHIR_URL=")
 @TestPropertySource(properties = "EIP_ODOO_FHIR_USERNAME=")
 @TestPropertySource(properties = "EIP_ODOO_FHIR_PASSWORD=")
+@TestPropertySource(properties = "EIP_OPENELIS_URL=")
 public class FhirControllerTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -59,6 +61,9 @@ public class FhirControllerTest {
 
     @Autowired
     private OdooFhirClient mockOdooClient;
+
+    @Autowired
+    private ServiceRequestPatientService mockServiceRequestPatientService;
 
     @Autowired
     private WebApplicationContext wac;
@@ -74,6 +79,7 @@ public class FhirControllerTest {
     public void tearDown() {
         SyncUtils.clearLastUpdatedTimestamps();
         Mockito.reset(mockOdooClient);
+        Mockito.reset(mockServiceRequestPatientService);
     }
 
     @Test
@@ -111,6 +117,53 @@ public class FhirControllerTest {
         ResultActions result = mockMvc.perform(builder);
 
         result.andExpect(status().isOk());
+        Mockito.verify(mockOdooClient).update(resType, id, body);
+        Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
+    }
+
+    @Test
+    public void createOrUpdate_shouldCreateSubjectPatientIfMissingBeforeUpdatingServiceRequest() throws Exception {
+        final String id = "service-request-1";
+        final String resType = "ServiceRequest";
+        final String patientIdentifier = "patient-identifier";
+        final LocalDateTime lastUpdated =
+                ZonedDateTime.parse("2025-02-05T19:45:00.000" + TZ_OFFSET).toLocalDateTime();
+        final Map<?, ?> data = Map.of(
+                "meta",
+                Map.of("lastUpdated", DateUtils.serialize(lastUpdated)),
+                "subject",
+                Map.of("identifier", Map.of("value", patientIdentifier)));
+        final String body = MAPPER.writeValueAsString(data);
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/fhir/" + resType + "/" + id);
+        builder.contentType(Constants.MEDIA_TYPE);
+        builder.content(body);
+        Mockito.when(mockOdooClient.update(resType, id, body)).thenReturn(HttpStatus.OK.value());
+
+        ResultActions result = mockMvc.perform(builder);
+
+        result.andExpect(status().isOk());
+        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(resType, body);
+        Mockito.verify(mockOdooClient).update(resType, id, body);
+        Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
+    }
+
+    @Test
+    public void createOrUpdate_shouldCreateSubjectPatientIfMissingBeforeUpdatingPatient() throws Exception {
+        final String id = "patient-1";
+        final String resType = "Patient";
+        final LocalDateTime lastUpdated =
+                ZonedDateTime.parse("2025-02-05T19:45:00.000" + TZ_OFFSET).toLocalDateTime();
+        final Map<?, ?> data = Map.of("meta", Map.of("lastUpdated", DateUtils.serialize(lastUpdated)));
+        final String body = MAPPER.writeValueAsString(data);
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/fhir/" + resType + "/" + id);
+        builder.contentType(Constants.MEDIA_TYPE);
+        builder.content(body);
+        Mockito.when(mockOdooClient.update(resType, id, body)).thenReturn(HttpStatus.OK.value());
+
+        ResultActions result = mockMvc.perform(builder);
+
+        result.andExpect(status().isOk());
+        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(resType, body);
         Mockito.verify(mockOdooClient).update(resType, id, body);
         Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
     }

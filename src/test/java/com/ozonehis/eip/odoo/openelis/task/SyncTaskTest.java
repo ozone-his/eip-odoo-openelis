@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
+import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -48,13 +49,16 @@ public class SyncTaskTest {
     @Mock
     private TimestampStore mockTimestampStore;
 
+    @Mock
+    private ServiceRequestPatientService mockServiceRequestPatientService;
+
     private SyncTask task;
 
     @BeforeEach
     public void setUp() {
         mockDateTimeUtils = Mockito.mockStatic(LocalDateTimeUtils.class);
         mockSyncUtils = Mockito.mockStatic(SyncUtils.class);
-        task = new SyncTask(mockTimestampStore, mockOpenElisClient, mockOdooClient);
+        task = new SyncTask(mockTimestampStore, mockOpenElisClient, mockOdooClient, mockServiceRequestPatientService);
         Whitebox.setInternalState(task, "overlap", OVERLAP);
     }
 
@@ -165,6 +169,40 @@ public class SyncTaskTest {
         verify(mockOdooClient).update(p2);
         verify(mockOdooClient).update(p3);
         // Verify the timestamp was still updated despite the failure
+        verify(mockTimestampStore).update(now, Patient.class);
+        mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
+    }
+
+    @Test
+    public void sync_shouldEnsureSubjectPatientExistsBeforeSyncingServiceRequest() {
+        LocalDateTime now = LocalDateTime.now();
+        ServiceRequest serviceRequest = new ServiceRequest();
+        when(LocalDateTimeUtils.getCurrentTime()).thenReturn(now);
+        LocalDateTime lastSyncTs = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+        when(mockOpenElisClient.getModifiedResources(ServiceRequest.class, lastSyncTs))
+                .thenReturn(List.of(serviceRequest));
+
+        task.sync(ServiceRequest.class);
+
+        verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(serviceRequest);
+        verify(mockOdooClient).update(serviceRequest);
+        verify(mockTimestampStore).update(now, ServiceRequest.class);
+        mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
+    }
+
+    @Test
+    public void sync_shouldNotEnsureSubjectPatientExistsBeforeSyncingPatient() {
+        LocalDateTime now = LocalDateTime.now();
+        Patient patient = new Patient();
+        when(LocalDateTimeUtils.getCurrentTime()).thenReturn(now);
+        LocalDateTime lastSyncTs = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+        when(mockOpenElisClient.getModifiedResources(Patient.class, lastSyncTs)).thenReturn(List.of(patient));
+
+        task.sync(Patient.class);
+
+        verify(mockServiceRequestPatientService, never())
+                .createSubjectPatientIfMissing(Mockito.any(ServiceRequest.class));
+        verify(mockOdooClient).update(patient);
         verify(mockTimestampStore).update(now, Patient.class);
         mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
     }
