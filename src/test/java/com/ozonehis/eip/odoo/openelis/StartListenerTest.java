@@ -7,34 +7,34 @@
  */
 package com.ozonehis.eip.odoo.openelis;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.powermock.reflect.Whitebox;
 
-@ExtendWith(MockitoExtension.class)
 public class StartListenerTest {
 
-    @Mock
-    private OpenElisFhirClient mockClient;
+    private static final String USERNAME = "admin";
+
+    private static final char[] PASSWORD = "password".toCharArray();
+
+    private FakeOpenElisFhirClient client;
 
     private StartListener listener;
 
     @BeforeEach
     public void setUp() {
-        listener = new StartListener(mockClient);
+        client = new FakeOpenElisFhirClient();
+        listener = new StartListener(client);
+        Whitebox.setInternalState(listener, "odooFhirUsername", USERNAME);
+        Whitebox.setInternalState(listener, "odooFhirPassword", PASSWORD);
     }
 
     @Test
@@ -44,11 +44,10 @@ public class StartListenerTest {
 
         listener.contextRefreshed();
 
-        ArgumentCaptor<Subscription> argCaptor = ArgumentCaptor.forClass(Subscription.class);
-        verify(mockClient).create(argCaptor.capture());
-        Subscription subscription = argCaptor.getValue();
+        Subscription subscription = client.createdSubscription;
         Assertions.assertEquals(endpoint, subscription.getChannel().getEndpoint());
-        verify(mockClient, never()).update(any(Subscription.class));
+        Assertions.assertTrue(hasExpectedAuthorizationHeader(subscription.getChannel()));
+        Assertions.assertNull(client.updatedSubscription);
     }
 
     @Test
@@ -59,29 +58,87 @@ public class StartListenerTest {
         SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
         channel.setEndpoint("test.test/old");
         subscription.setChannel(channel);
-        when(mockClient.getSubscription()).thenReturn(subscription);
+        client.existingSubscription = subscription;
 
         listener.contextRefreshed();
 
-        verify(mockClient).getSubscription();
-        verify(mockClient, never()).create(any(Subscription.class));
-        verify(mockClient).update(any(Subscription.class));
+        Assertions.assertEquals(1, client.getSubscriptionCallCount);
+        Assertions.assertNull(client.createdSubscription);
+        Assertions.assertSame(subscription, client.updatedSubscription);
     }
 
     @Test
-    public void contextRefreshed_whenSubscriptionExistsAndEndpointIsSame() {
+    public void contextRefreshed_shouldUpdateExistingSubscriptionIfAuthorizationHeaderIsMissing() {
         final String endpoint = "test.test/test";
         Whitebox.setInternalState(listener, "endpoint", endpoint);
         Subscription subscription = new Subscription();
         SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
         channel.setEndpoint(endpoint);
         subscription.setChannel(channel);
-        when(mockClient.getSubscription()).thenReturn(subscription);
+        client.existingSubscription = subscription;
 
         listener.contextRefreshed();
 
-        verify(mockClient).getSubscription();
-        verify(mockClient, never()).create(any(Subscription.class));
-        verify(mockClient, never()).update(any(Subscription.class));
+        Assertions.assertEquals(1, client.getSubscriptionCallCount);
+        Assertions.assertNull(client.createdSubscription);
+        Assertions.assertSame(subscription, client.updatedSubscription);
+        Assertions.assertTrue(hasExpectedAuthorizationHeader(subscription.getChannel()));
+    }
+
+    @Test
+    public void contextRefreshed_whenSubscriptionExistsAndEndpointAndAuthorizationHeaderAreSame() {
+        final String endpoint = "test.test/test";
+        Whitebox.setInternalState(listener, "endpoint", endpoint);
+        Subscription subscription = new Subscription();
+        SubscriptionChannelComponent channel = new SubscriptionChannelComponent();
+        channel.setEndpoint(endpoint);
+        channel.setType(Subscription.SubscriptionChannelType.RESTHOOK);
+        channel.setPayload(Constants.MEDIA_TYPE);
+        channel.addHeader(expectedAuthorizationHeader());
+        subscription.setChannel(channel);
+        client.existingSubscription = subscription;
+
+        listener.contextRefreshed();
+
+        Assertions.assertEquals(1, client.getSubscriptionCallCount);
+        Assertions.assertNull(client.createdSubscription);
+        Assertions.assertNull(client.updatedSubscription);
+    }
+
+    private String expectedAuthorizationHeader() {
+        String credentials = USERNAME + ":" + new String(PASSWORD);
+        return "Authorization: Basic "
+                + Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private boolean hasExpectedAuthorizationHeader(SubscriptionChannelComponent channel) {
+        return channel.getHeader().stream().map(StringType::getValue).anyMatch(expectedAuthorizationHeader()::equals);
+    }
+
+    private static class FakeOpenElisFhirClient extends OpenElisFhirClient {
+
+        private Subscription existingSubscription;
+
+        private Subscription createdSubscription;
+
+        private Subscription updatedSubscription;
+
+        private int getSubscriptionCallCount;
+
+        @Override
+        public Subscription getSubscription() {
+            getSubscriptionCallCount++;
+            return existingSubscription;
+        }
+
+        @Override
+        public void create(DomainResource resource) {
+            createdSubscription = (Subscription) resource;
+        }
+
+        @Override
+        public void update(DomainResource resource) {
+            updatedSubscription = (Subscription) resource;
+        }
     }
 }
