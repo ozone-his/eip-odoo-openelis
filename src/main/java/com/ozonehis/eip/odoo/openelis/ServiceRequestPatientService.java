@@ -25,15 +25,15 @@ public class ServiceRequestPatientService {
         this.openElisFhirClient = openElisFhirClient;
     }
 
-    public void createSubjectPatientFromPayloadIfMissing(String resourceType, String body) {
+    public void createPatientFromPayloadIfMissing(String resourceType, String body) {
         if (!ServiceRequest.class.getSimpleName().equals(resourceType)) {
             return;
         }
 
-        createPatientIfMissing(getSubjectPatientIdentifier(body));
+        createPatientIfMissing(getPatientIdentifier(body));
     }
 
-    public void createSubjectPatientFromServiceRequestIfMissing(ServiceRequest serviceRequest) {
+    public void createPatientFromServiceRequestIfMissing(ServiceRequest serviceRequest) {
         if (!serviceRequest.hasSubject() || !serviceRequest.getSubject().hasIdentifier()) {
             return;
         }
@@ -59,7 +59,7 @@ public class ServiceRequestPatientService {
         odooFhirClient.create(patient);
     }
 
-    private String getSubjectPatientIdentifier(String body) {
+    private String getPatientIdentifier(String body) {
         try {
             return JsonPath.read(body, "subject.identifier.value");
         } catch (PathNotFoundException e) {

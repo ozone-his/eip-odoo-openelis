@@ -52,7 +52,7 @@ public class FhirController {
             @RequestBody String body) {
         int status = 200;
         try {
-            serviceRequestPatientService.createSubjectPatientFromPayloadIfMissing(resourceType, body);
+            serviceRequestPatientService.createPatientFromPayloadIfMissing(resourceType, body);
             status = odooFhirClient.update(resourceType, id, body);
             LocalDateTime lastUpdated = DateUtils.deserialize(JsonPath.read(body, "meta.lastUpdated"));
             SyncUtils.saveLastUpdated(resourceType, id, lastUpdated);
