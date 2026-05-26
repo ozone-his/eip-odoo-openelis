@@ -114,7 +114,7 @@ public class SyncTask {
 
     private void syncResource(DomainResource resource) {
         if (resource instanceof ServiceRequest) {
-            serviceRequestPatientService.createSubjectPatientIfMissing((ServiceRequest) resource);
+            serviceRequestPatientService.createSubjectPatientFromServiceRequestIfMissing((ServiceRequest) resource);
         }
 
         odooClient.update(resource);

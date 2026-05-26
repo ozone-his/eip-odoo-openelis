@@ -25,34 +25,38 @@ public class ServiceRequestPatientService {
         this.openElisFhirClient = openElisFhirClient;
     }
 
-    public void createSubjectPatientIfMissing(String resourceType, String body) {
+    public void createSubjectPatientFromPayloadIfMissing(String resourceType, String body) {
         if (!ServiceRequest.class.getSimpleName().equals(resourceType)) {
             return;
         }
 
-        createSubjectPatientIfMissing(getSubjectPatientIdentifier(body));
+        createPatientIfMissing(getSubjectPatientIdentifier(body));
     }
 
-    public void createSubjectPatientIfMissing(ServiceRequest serviceRequest) {
+    public void createSubjectPatientFromServiceRequestIfMissing(ServiceRequest serviceRequest) {
         if (!serviceRequest.hasSubject() || !serviceRequest.getSubject().hasIdentifier()) {
             return;
         }
 
-        createSubjectPatientIfMissing(
-                serviceRequest.getSubject().getIdentifier().getValue());
+        String patientIdentifier = serviceRequest.getSubject().getIdentifier().getValue();
+        createPatientIfMissing(patientIdentifier);
     }
 
-    private void createSubjectPatientIfMissing(String patientIdentifier) {
-        if (patientIdentifier == null
-                || patientIdentifier.isBlank()
-                || odooFhirClient.getByIdentifier(patientIdentifier, Patient.class) != null) {
+    private void createPatientIfMissing(String patientIdentifier) {
+        if (patientIdentifier == null || patientIdentifier.isBlank()) {
+            return;
+        }
+
+        if (odooFhirClient.getByIdentifier(patientIdentifier, Patient.class) != null) {
             return;
         }
 
         Patient patient = openElisFhirClient.getByIdentifier(patientIdentifier, Patient.class);
-        if (patient != null) {
-            odooFhirClient.create(patient);
+        if (patient == null) {
+            return;
         }
+
+        odooFhirClient.create(patient);
     }
 
     private String getSubjectPatientIdentifier(String body) {

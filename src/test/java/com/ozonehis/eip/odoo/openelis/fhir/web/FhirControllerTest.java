@@ -142,7 +142,7 @@ public class FhirControllerTest {
         ResultActions result = mockMvc.perform(builder);
 
         result.andExpect(status().isOk());
-        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(resType, body);
+        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientFromPayloadIfMissing(resType, body);
         Mockito.verify(mockOdooClient).update(resType, id, body);
         Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
     }
@@ -163,7 +163,7 @@ public class FhirControllerTest {
         ResultActions result = mockMvc.perform(builder);
 
         result.andExpect(status().isOk());
-        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(resType, body);
+        Mockito.verify(mockServiceRequestPatientService).createSubjectPatientFromPayloadIfMissing(resType, body);
         Mockito.verify(mockOdooClient).update(resType, id, body);
         Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
     }

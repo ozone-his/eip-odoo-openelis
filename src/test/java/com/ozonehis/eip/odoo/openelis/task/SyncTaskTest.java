@@ -184,7 +184,7 @@ public class SyncTaskTest {
 
         task.sync(ServiceRequest.class);
 
-        verify(mockServiceRequestPatientService).createSubjectPatientIfMissing(serviceRequest);
+        verify(mockServiceRequestPatientService).createSubjectPatientFromServiceRequestIfMissing(serviceRequest);
         verify(mockOdooClient).update(serviceRequest);
         verify(mockTimestampStore).update(now, ServiceRequest.class);
         mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
@@ -201,7 +201,7 @@ public class SyncTaskTest {
         task.sync(Patient.class);
 
         verify(mockServiceRequestPatientService, never())
-                .createSubjectPatientIfMissing(Mockito.any(ServiceRequest.class));
+                .createSubjectPatientFromServiceRequestIfMissing(Mockito.any(ServiceRequest.class));
         verify(mockOdooClient).update(patient);
         verify(mockTimestampStore).update(now, Patient.class);
         mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());
