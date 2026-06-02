@@ -11,30 +11,36 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
 
-public class ServiceRequestPatientService {
+@Slf4j
+public class PatientService {
 
     private final OdooFhirClient odooFhirClient;
 
     private final OpenElisFhirClient openElisFhirClient;
 
-    public ServiceRequestPatientService(OdooFhirClient odooFhirClient, OpenElisFhirClient openElisFhirClient) {
+    public PatientService(OdooFhirClient odooFhirClient, OpenElisFhirClient openElisFhirClient) {
         this.odooFhirClient = odooFhirClient;
         this.openElisFhirClient = openElisFhirClient;
     }
 
-    public void createPatientFromPayloadIfMissing(String resourceType, String body) {
+    public void createPatientIfMissing(String resourceType, String body) {
         if (!ServiceRequest.class.getSimpleName().equals(resourceType)) {
+            log.debug("Skipping patient creation because resource type is {} not ServiceRequest", resourceType);
+
             return;
         }
 
         createPatientIfMissing(getPatientIdentifier(body));
     }
 
-    public void createPatientFromServiceRequestIfMissing(ServiceRequest serviceRequest) {
+    public void createPatientIfMissing(ServiceRequest serviceRequest) {
         if (!serviceRequest.hasSubject() || !serviceRequest.getSubject().hasIdentifier()) {
+            log.debug("Skipping patient creation because service request has no subject identifier");
+
             return;
         }
 
@@ -44,15 +50,25 @@ public class ServiceRequestPatientService {
 
     private void createPatientIfMissing(String patientIdentifier) {
         if (patientIdentifier == null || patientIdentifier.isBlank()) {
+            log.debug("Skipping patient creation because patient identifier is blank");
+
             return;
         }
 
         if (odooFhirClient.getByIdentifier(patientIdentifier, Patient.class) != null) {
+            log.debug(
+                    "Skipping patient creation because patient already exists in Odoo with identifier: {}",
+                    patientIdentifier);
+
             return;
         }
 
         Patient patient = openElisFhirClient.getByIdentifier(patientIdentifier, Patient.class);
         if (patient == null) {
+            log.debug(
+                    "Skipping patient creation because patient was not found in OpenELIS with identifier: {}",
+                    patientIdentifier);
+
             return;
         }
 
@@ -61,8 +77,13 @@ public class ServiceRequestPatientService {
 
     private String getPatientIdentifier(String body) {
         try {
-            return JsonPath.read(body, "subject.identifier.value");
+            String patientIdentifier = JsonPath.read(body, "subject.identifier.value");
+            log.debug("Found patient identifier in service request body: {}", patientIdentifier);
+
+            return patientIdentifier;
         } catch (PathNotFoundException e) {
+            log.debug("No patient identifier found in service request body");
+
             return null;
         }
     }

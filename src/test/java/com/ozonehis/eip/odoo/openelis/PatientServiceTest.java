@@ -28,7 +28,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ServiceRequestPatientServiceTest {
+public class PatientServiceTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -38,11 +38,11 @@ public class ServiceRequestPatientServiceTest {
     @Mock
     private OpenElisFhirClient mockOpenElisClient;
 
-    private ServiceRequestPatientService service;
+    private PatientService service;
 
     @BeforeEach
     public void setUp() {
-        service = new ServiceRequestPatientService(mockOdooClient, mockOpenElisClient);
+        service = new PatientService(mockOdooClient, mockOpenElisClient);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ServiceRequestPatientServiceTest {
         when(mockOpenElisClient.getByIdentifier(patientIdentifier, Patient.class))
                 .thenReturn(patient);
 
-        service.createPatientFromServiceRequestIfMissing(serviceRequest);
+        service.createPatientIfMissing(serviceRequest);
 
         InOrder inOrder = Mockito.inOrder(mockOdooClient);
         inOrder.verify(mockOdooClient).getByIdentifier(patientIdentifier, Patient.class);
@@ -70,7 +70,7 @@ public class ServiceRequestPatientServiceTest {
         serviceRequest.setSubject(new Reference().setIdentifier(new Identifier().setValue(patientIdentifier)));
         when(mockOdooClient.getByIdentifier(patientIdentifier, Patient.class)).thenReturn(new Patient());
 
-        service.createPatientFromServiceRequestIfMissing(serviceRequest);
+        service.createPatientIfMissing(serviceRequest);
 
         verify(mockOpenElisClient, never()).getByIdentifier(patientIdentifier, Patient.class);
         verify(mockOdooClient, never()).create(Mockito.any(Patient.class));
@@ -87,7 +87,7 @@ public class ServiceRequestPatientServiceTest {
         when(mockOpenElisClient.getByIdentifier(patientIdentifier, Patient.class))
                 .thenReturn(patient);
 
-        service.createPatientFromPayloadIfMissing(ServiceRequest.class.getSimpleName(), body);
+        service.createPatientIfMissing(ServiceRequest.class.getSimpleName(), body);
 
         verify(mockOdooClient).getByIdentifier(patientIdentifier, Patient.class);
         verify(mockOpenElisClient).getByIdentifier(patientIdentifier, Patient.class);
@@ -99,7 +99,7 @@ public class ServiceRequestPatientServiceTest {
         String body = MAPPER.writeValueAsString(
                 Map.of("subject", Map.of("identifier", Map.of("value", "patient-identifier"))));
 
-        service.createPatientFromPayloadIfMissing(Patient.class.getSimpleName(), body);
+        service.createPatientIfMissing(Patient.class.getSimpleName(), body);
 
         verify(mockOdooClient, never()).getByIdentifier(Mockito.anyString(), Mockito.eq(Patient.class));
         verify(mockOpenElisClient, never()).getByIdentifier(Mockito.anyString(), Mockito.eq(Patient.class));

@@ -25,8 +25,8 @@ public class TestConfig {
     }
 
     @Bean
-    public ServiceRequestPatientService serviceRequestPatientService(
+    public PatientService serviceRequestPatientService(
             OdooFhirClient odooFhirClient, OpenElisFhirClient openElisFhirClient) {
-        return Mockito.mock(ServiceRequestPatientService.class);
+        return Mockito.mock(PatientService.class);
     }
 }

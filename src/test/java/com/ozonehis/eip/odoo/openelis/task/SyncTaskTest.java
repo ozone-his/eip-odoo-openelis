@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
-import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
+import com.ozonehis.eip.odoo.openelis.PatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -50,7 +50,7 @@ public class SyncTaskTest {
     private TimestampStore mockTimestampStore;
 
     @Mock
-    private ServiceRequestPatientService mockServiceRequestPatientService;
+    private PatientService mockPatientService;
 
     private SyncTask task;
 
@@ -58,7 +58,7 @@ public class SyncTaskTest {
     public void setUp() {
         mockDateTimeUtils = Mockito.mockStatic(LocalDateTimeUtils.class);
         mockSyncUtils = Mockito.mockStatic(SyncUtils.class);
-        task = new SyncTask(mockTimestampStore, mockOpenElisClient, mockOdooClient, mockServiceRequestPatientService);
+        task = new SyncTask(mockTimestampStore, mockOpenElisClient, mockOdooClient, mockPatientService);
         Whitebox.setInternalState(task, "overlap", OVERLAP);
     }
 
@@ -184,7 +184,7 @@ public class SyncTaskTest {
 
         task.sync(ServiceRequest.class);
 
-        verify(mockServiceRequestPatientService).createPatientFromServiceRequestIfMissing(serviceRequest);
+        verify(mockPatientService).createPatientIfMissing(serviceRequest);
         verify(mockOdooClient).update(serviceRequest);
         verify(mockTimestampStore).update(now, ServiceRequest.class);
         mockSyncUtils.verify(() -> SyncUtils.clearLastUpdatedTimestamps());

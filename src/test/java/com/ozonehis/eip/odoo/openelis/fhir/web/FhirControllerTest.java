@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.DateUtils;
-import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
+import com.ozonehis.eip.odoo.openelis.PatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.TestConfig;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
@@ -63,7 +63,7 @@ public class FhirControllerTest {
     private OdooFhirClient mockOdooClient;
 
     @Autowired
-    private ServiceRequestPatientService mockServiceRequestPatientService;
+    private PatientService mockPatientService;
 
     @Autowired
     private WebApplicationContext wac;
@@ -79,7 +79,7 @@ public class FhirControllerTest {
     public void tearDown() {
         SyncUtils.clearLastUpdatedTimestamps();
         Mockito.reset(mockOdooClient);
-        Mockito.reset(mockServiceRequestPatientService);
+        Mockito.reset(mockPatientService);
     }
 
     @Test
@@ -142,7 +142,7 @@ public class FhirControllerTest {
         ResultActions result = mockMvc.perform(builder);
 
         result.andExpect(status().isOk());
-        Mockito.verify(mockServiceRequestPatientService).createPatientFromPayloadIfMissing(resType, body);
+        Mockito.verify(mockPatientService).createPatientIfMissing(resType, body);
         Mockito.verify(mockOdooClient).update(resType, id, body);
         Assertions.assertEquals(lastUpdated, SyncUtils.getLastUpdated(resType, id));
     }

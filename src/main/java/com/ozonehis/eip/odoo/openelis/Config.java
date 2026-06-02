@@ -24,8 +24,8 @@ public class Config {
     }
 
     @Bean
-    public ServiceRequestPatientService serviceRequestPatientService(
+    public PatientService serviceRequestPatientService(
             OdooFhirClient odooFhirClient, OpenElisFhirClient openElisFhirClient) {
-        return new ServiceRequestPatientService(odooFhirClient, openElisFhirClient);
+        return new PatientService(odooFhirClient, openElisFhirClient);
     }
 }

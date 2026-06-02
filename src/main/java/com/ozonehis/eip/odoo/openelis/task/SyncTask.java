@@ -12,7 +12,7 @@ import static com.ozonehis.eip.odoo.openelis.Constants.PROP_INITIAL_DELAY;
 
 import com.ozonehis.eip.odoo.openelis.Constants;
 import com.ozonehis.eip.odoo.openelis.LocalDateTimeUtils;
-import com.ozonehis.eip.odoo.openelis.ServiceRequestPatientService;
+import com.ozonehis.eip.odoo.openelis.PatientService;
 import com.ozonehis.eip.odoo.openelis.SyncUtils;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
@@ -39,7 +39,7 @@ public class SyncTask {
 
     private OdooFhirClient odooClient;
 
-    private ServiceRequestPatientService serviceRequestPatientService;
+    private PatientService patientService;
 
     private Executor executor;
 
@@ -50,11 +50,11 @@ public class SyncTask {
             TimestampStore timestampStore,
             OpenElisFhirClient openElisClient,
             OdooFhirClient odooClient,
-            ServiceRequestPatientService serviceRequestPatientService) {
+            PatientService patientService) {
         this.timestampStore = timestampStore;
         this.openElisClient = openElisClient;
         this.odooClient = odooClient;
-        this.serviceRequestPatientService = serviceRequestPatientService;
+        this.patientService = patientService;
         executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
     }
 
@@ -114,7 +114,7 @@ public class SyncTask {
 
     private void syncResource(DomainResource resource) {
         if (resource instanceof ServiceRequest) {
-            serviceRequestPatientService.createPatientFromServiceRequestIfMissing((ServiceRequest) resource);
+            patientService.createPatientIfMissing((ServiceRequest) resource);
         }
 
         odooClient.update(resource);
