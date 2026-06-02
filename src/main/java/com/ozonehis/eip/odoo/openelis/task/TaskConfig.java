@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openelis.task;
 
+import com.ozonehis.eip.odoo.openelis.PatientService;
 import com.ozonehis.eip.odoo.openelis.fhir.OdooFhirClient;
 import com.ozonehis.eip.odoo.openelis.fhir.OpenElisFhirClient;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,10 @@ public class TaskConfig {
 
     @Bean
     public SyncTask SyncTask(
-            TimestampStore timestampStore, OpenElisFhirClient openElisClient, OdooFhirClient odooClient) {
-        return new SyncTask(timestampStore, openElisClient, odooClient);
+            TimestampStore timestampStore,
+            OpenElisFhirClient openElisClient,
+            OdooFhirClient odooClient,
+            PatientService patientService) {
+        return new SyncTask(timestampStore, openElisClient, odooClient, patientService);
     }
 }
